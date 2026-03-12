@@ -60,6 +60,208 @@ function initGameState(): GameState {
   };
 }
 
+function isStraightLine(x1: number, y1: number, x2: number, y2: number) {
+  const xChanged = x1 !== x2;
+  const yChanged = y1 !== y2;
+  return (xChanged && !yChanged) || (yChanged && !xChanged);
+}
+
+function isDiagonalLine(x1: number, y1: number, x2: number, y2: number) {
+  return Math.abs(x2 - x1) === Math.abs(y2 - y1);
+}
+
+function pathIsClear(
+  board: Board,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): boolean {
+  const xDiff = x2 - x1;
+  const yDiff = y2 - y1;
+
+  const xStep = xDiff === 0 ? 0 : xDiff > 0 ? 1 : -1;
+  const yStep = yDiff === 0 ? 0 : yDiff > 0 ? 1 : -1;
+
+  let xPointer = x1 + xStep;
+  let yPointer = y1 + yStep;
+
+  while (xPointer !== x2 || yPointer !== y2) {
+    if (getSquare(board, xPointer, yPointer)) {
+      return false;
+    }
+    xPointer += xStep;
+    yPointer += yStep;
+  }
+
+  return true;
+}
+
+function isLegalPawnMove(
+  piece: Piece,
+  board: Board,
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+): boolean {
+  const { colour } = piece;
+  const deltaX = toX - fromX;
+  const deltaY = toY - fromY;
+  const movingUp = deltaY <= 0;
+  const movingDown = deltaY >= 0;
+  const isFirstMove =
+    (colour === "black" && fromY === 1) || (colour === "white" && fromY === 6);
+
+  // check correct direction
+  if ((colour === "black" && movingUp) || (colour === "white" && movingDown)) {
+    return false;
+  }
+
+  const targetSquareOccupied = !!getSquare(board, toX, toY);
+
+  // one step forward
+  if (deltaY === 1) {
+    if (deltaX !== 0) {
+      return false;
+    }
+    if (targetSquareOccupied) {
+      return false;
+    }
+  }
+
+  const pathClear = pathIsClear(board, fromX, fromY, toX, toY);
+
+  // two step forward
+  if (deltaY === 2) {
+    if (!isFirstMove) {
+      return false;
+    }
+    if (targetSquareOccupied || !pathClear) {
+      return false;
+    }
+  }
+
+  // diagonal
+  if (deltaX != 0) {
+    if (Math.abs(deltaX) > 1) {
+      return false;
+    }
+    if (Math.abs(deltaY) > 1) {
+      return false;
+    }
+    if (!targetSquareOccupied) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isLegalRookMove(
+  board: Board,
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+): boolean {
+  if (!isStraightLine(fromX, fromY, toX, toY)) {
+    return false;
+  }
+  return pathIsClear(board, fromX, fromY, toX, toY);
+}
+
+function isLegalKnightMove(
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+): boolean {
+  const deltaX = Math.abs(toX - fromX);
+  const deltaY = Math.abs(toY - fromY);
+  return (deltaX === 1 && deltaY === 2) || (deltaX === 2 && deltaY === 1);
+}
+
+function isLegalBishopMove(
+  board: Board,
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+): boolean {
+  if (!isDiagonalLine(fromX, fromY, toX, toY)) {
+    return false;
+  }
+  return pathIsClear(board, fromX, fromY, toX, toY);
+}
+
+function isLegalQueenMove(
+  board: Board,
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+): boolean {
+  if (
+    !isDiagonalLine(fromX, fromY, toX, toY) &&
+    !isStraightLine(fromX, fromY, toX, toY)
+  ) {
+    return false;
+  }
+  return pathIsClear(board, fromX, fromY, toX, toY);
+}
+
+function isLegalKingMove(
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+): boolean {
+  const deltaX = Math.abs(toX - fromX);
+  const deltaY = Math.abs(toY - fromY);
+  return deltaX <= 1 && deltaY <= 1;
+}
+
+function isLegalMove(
+  board: Board,
+  fromX: number,
+  fromY: number,
+  toX: number,
+  toY: number,
+): boolean {
+  // common checks for all pieces
+  const startingPiece = getSquare(board, fromX, fromY);
+  if (!startingPiece) {
+    throw new Error("No piece at the source square");
+  }
+  const startAndTargetAreSame = fromX === toX && fromY === toY;
+  if (startAndTargetAreSame) {
+    return false;
+  }
+  const targetPiece = getSquare(board, toX, toY);
+  const targetIsFriendly = targetPiece?.colour === startingPiece.colour;
+  if (targetIsFriendly) {
+    return false;
+  }
+
+  // specific piece checks
+
+  switch (startingPiece.type) {
+    case "pawn":
+      return isLegalPawnMove(startingPiece, board, fromX, fromY, toX, toY);
+    case "rook":
+      return isLegalRookMove(board, fromX, fromY, toX, toY);
+    case "knight":
+      return isLegalKnightMove(fromX, fromY, toX, toY);
+    case "bishop":
+      return isLegalBishopMove(board, fromX, fromY, toX, toY);
+    case "queen":
+      return isLegalQueenMove(board, fromX, fromY, toX, toY);
+    case "king":
+      return isLegalKingMove(fromX, fromY, toX, toY);
+  }
+}
+
 function getSquare(board: Board, x: number, y: number): Square {
   const row = board[y];
   if (row === undefined) {
@@ -82,7 +284,7 @@ function setSquare(board: Board, x: number, y: number, newValue: Square): void {
   row[x] = newValue;
 }
 
-function selectSquare(gameState: GameState, x: number, y: number): boolean {
+function trySelectSquare(gameState: GameState, x: number, y: number): boolean {
   const square = getSquare(gameState.game.board, x, y);
   if (square) {
     gameState.ui.selectedSquare = { x, y };
@@ -98,9 +300,6 @@ function movePiece(
   toX: number,
   toY: number,
 ): void {
-  if (fromX === toX && fromY === toY) {
-    return;
-  }
   const piece = getSquare(board, fromX, fromY);
   if (!piece) {
     throw new Error("No piece at the source square");
@@ -109,5 +308,5 @@ function movePiece(
   setSquare(board, fromX, fromY, null);
 }
 
-export { initGameState, getSquare, selectSquare, movePiece, SIZE };
+export { initGameState, getSquare, trySelectSquare, movePiece, SIZE };
 export type { Square, Board, SelectedSquare, GameState };
