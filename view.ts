@@ -1,8 +1,17 @@
 import { Box, Text } from "@opentui/core";
-import { SIZE, getSquare, type Square, type GameState } from "./game";
+import {
+  SIZE,
+  getSquare,
+  type Square,
+  type GameState,
+  type Position,
+} from "./game";
 
 const CELL_WIDTH = 7;
 const CELL_HEIGHT = 3;
+const highlight = "#FF00FF";
+const light = "#eeeed2";
+const dark = "#769656";
 
 function pieceToGlyph(piece: Square): string {
   if (piece === null) return " ";
@@ -41,7 +50,7 @@ function pieceToGlyph(piece: Square): string {
 }
 
 type Actions = {
-  onSquareClick: (x: number, y: number) => void;
+  onSquareClick: (position: Position) => void;
 };
 
 function cell(
@@ -49,8 +58,7 @@ function cell(
   gameState: GameState,
   isDark: boolean,
   piece: Square,
-  x: number,
-  y: number,
+  position: Position,
 ) {
   return Box(
     {
@@ -59,14 +67,14 @@ function cell(
       justifyContent: "center",
       alignItems: "center",
       backgroundColor:
-        gameState.ui.selectedSquare?.x === x &&
-        gameState.ui.selectedSquare?.y === y
-          ? "#FF00FF"
+        gameState.ui.selectedSquare?.x === position.x &&
+        gameState.ui.selectedSquare?.y === position.y
+          ? highlight
           : isDark
-            ? "#769656"
-            : "#eeeed2",
+            ? dark
+            : light,
       onMouseDown: () => {
-        actions.onSquareClick(x, y);
+        actions.onSquareClick(position);
       },
     },
     Text({
@@ -80,9 +88,10 @@ function row(actions: Actions, gameState: GameState, y: number) {
   return Box(
     { flexDirection: "row" },
     ...Array.from({ length: SIZE }, (_, x) => {
+      const position = { x, y };
       const isDark = (x + y) % 2 === 1;
-      const piece = getSquare(gameState.game.board, x, y);
-      return cell(actions, gameState, isDark, piece, x, y);
+      const piece = getSquare(gameState.game.board, position);
+      return cell(actions, gameState, isDark, piece, position);
     }),
   );
 }
