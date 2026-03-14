@@ -4,6 +4,7 @@ import {
   movePiece,
   getSquare,
   trySelectSquare,
+  isLegalMove,
   type GameState,
 } from "./game";
 import { buildApp, type Actions } from "./view";
@@ -35,6 +36,9 @@ function handleBoardClick(gameState: GameState, x: number, y: number): boolean {
     return true;
   }
 
+  if (!isLegalMove(board, selectedSquare.x, selectedSquare.y, x, y)) {
+    return false;
+  }
   movePiece(board, selectedSquare.x, selectedSquare.y, x, y);
   gameState.ui.selectedSquare = null;
   return true;

@@ -108,6 +108,8 @@ function isLegalPawnMove(
   const { colour } = piece;
   const deltaX = toX - fromX;
   const deltaY = toY - fromY;
+  const forwardDistance = Math.abs(deltaY);
+  const horizontalDistance = Math.abs(deltaX);
   const movingUp = deltaY <= 0;
   const movingDown = deltaY >= 0;
   const isFirstMove =
@@ -118,44 +120,35 @@ function isLegalPawnMove(
     return false;
   }
 
-  const targetSquareOccupied = !!getSquare(board, toX, toY);
+  if (forwardDistance > 2 || horizontalDistance > 1) return false;
 
-  // one step forward
-  if (deltaY === 1) {
-    if (deltaX !== 0) {
-      return false;
-    }
-    if (targetSquareOccupied) {
-      return false;
+  const targetSquare = getSquare(board, toX, toY);
+  const targetSquareOccupied = !!targetSquare;
+  const targetSquareIsEnemy =
+    targetSquare !== null && targetSquare.colour !== colour;
+  const clearPath = pathIsClear(board, fromX, fromY, toX, toY);
+
+  // moving diagonally
+  if (horizontalDistance === 1) {
+    return forwardDistance === 1 && targetSquareIsEnemy;
+  }
+
+  // moving straight
+  if (horizontalDistance === 0) {
+    // one square
+    if (forwardDistance === 1 && !targetSquareOccupied) return true;
+    // two squares
+    if (
+      forwardDistance === 2 &&
+      isFirstMove &&
+      !targetSquareOccupied &&
+      clearPath
+    ) {
+      return true;
     }
   }
 
-  const pathClear = pathIsClear(board, fromX, fromY, toX, toY);
-
-  // two step forward
-  if (deltaY === 2) {
-    if (!isFirstMove) {
-      return false;
-    }
-    if (targetSquareOccupied || !pathClear) {
-      return false;
-    }
-  }
-
-  // diagonal
-  if (deltaX != 0) {
-    if (Math.abs(deltaX) > 1) {
-      return false;
-    }
-    if (Math.abs(deltaY) > 1) {
-      return false;
-    }
-    if (!targetSquareOccupied) {
-      return false;
-    }
-  }
-
-  return true;
+  return false;
 }
 
 function isLegalRookMove(
@@ -308,5 +301,12 @@ function movePiece(
   setSquare(board, fromX, fromY, null);
 }
 
-export { initGameState, getSquare, trySelectSquare, movePiece, SIZE };
+export {
+  initGameState,
+  getSquare,
+  trySelectSquare,
+  isLegalMove,
+  movePiece,
+  SIZE,
+};
 export type { Square, Board, SelectedSquare, GameState };
