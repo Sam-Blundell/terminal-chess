@@ -3,7 +3,7 @@ import type { GameState } from "./game";
 import type { Actions } from "./actions";
 import { createCliRenderer, ConsolePosition } from "@opentui/core";
 import { initGameState } from "./game";
-import { initActions } from "./app";
+import { initActions } from "./controller";
 import { buildApp } from "./view";
 import { initKeyboard } from "./keyboard";
 
