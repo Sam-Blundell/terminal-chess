@@ -25,7 +25,7 @@ function initKeyboard(renderer: CliRenderer, actions: Actions): void {
       return;
     }
     if (key.name === "return" || key.name === "space") {
-      actions.onActivateFocusedSquare();
+      actions.onInteractWithFocusedSquare();
       return;
     }
     if (key.name === "q") {

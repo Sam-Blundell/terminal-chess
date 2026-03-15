@@ -65,7 +65,7 @@ function cell(
       alignItems: "center",
       backgroundColor: getSquareBackgroundColour(gameState, position, isDark),
       onMouseDown: () => {
-        actions.onSquareClick(position);
+        actions.onInteractWithSquare(position);
       },
     },
     Text({

@@ -3,9 +3,9 @@ import type { Position } from "./game";
 type Direction = "up" | "down" | "left" | "right";
 
 type Actions = {
-  onSquareClick: (position: Position) => void;
+  onInteractWithSquare: (position: Position) => void;
   onMoveFocus: (direction: Direction) => void;
-  onActivateFocusedSquare: () => void;
+  onInteractWithFocusedSquare: () => void;
   onCancelSelection: () => void;
 };
 
