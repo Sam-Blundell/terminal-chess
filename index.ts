@@ -1,14 +1,17 @@
-import { createCliRenderer, type CliRenderer } from "@opentui/core";
+import type { CliRenderer } from "@opentui/core";
+import type { GameState, Position } from "./game";
+import type { Actions } from "./view";
+import { createCliRenderer, ConsolePosition } from "@opentui/core";
 import {
   initGameState,
-  movePiece,
+  applyMove,
   getSquare,
   trySelectSquare,
-  isLegalMove,
-  type GameState,
-  type Position,
+  endTurn,
 } from "./game";
-import { buildApp, type Actions } from "./view";
+import { isLegalMove } from "./move-validation";
+import { buildApp } from "./view";
+import { initKeyboard } from "./keyboard";
 
 function render(renderer: CliRenderer, actions: Actions, gameState: GameState) {
   renderer.root.remove("app-root");
@@ -24,7 +27,7 @@ function handleBoardClick(gameState: GameState, position: Position): boolean {
   const clickedSameSquare =
     selectedSquare.x === position.x && selectedSquare.y === position.y;
 
-  // clear selected square
+  // deselect current square
   if (clickedSameSquare) {
     gameState.ui.selectedSquare = null;
     return true;
@@ -44,13 +47,20 @@ function handleBoardClick(gameState: GameState, position: Position): boolean {
   if (!isLegalMove(board, { from: selectedSquare, to: position })) {
     return false;
   }
-  movePiece(board, { from: selectedSquare, to: position });
-  gameState.ui.selectedSquare = null;
+  applyMove(gameState, { from: selectedSquare, to: position });
+  endTurn(gameState);
   return true;
 }
 
 async function main() {
-  const renderer = await createCliRenderer();
+  const renderer = await createCliRenderer({
+    useConsole: true,
+    consoleOptions: {
+      position: ConsolePosition.BOTTOM,
+      sizePercent: 20,
+    },
+  });
+  initKeyboard(renderer);
   const gameState = initGameState();
   const actions: Actions = {
     onSquareClick: (position: Position) => {

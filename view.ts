@@ -1,37 +1,18 @@
+import type { PieceColour, Piece, Square, GameState, Position } from "./game";
 import { Box, Text } from "@opentui/core";
-import {
-  SIZE,
-  getSquare,
-  type Square,
-  type GameState,
-  type Position,
-} from "./game";
+import { SIZE, getSquare } from "./game";
 
 const CELL_WIDTH = 7;
 const CELL_HEIGHT = 3;
 const highlight = "#FF00FF";
 const light = "#eeeed2";
 const dark = "#769656";
+const white = "#FFFFFF";
+const black = "#000000";
+const grey = "#979797";
 
 function pieceToGlyph(piece: Square): string {
   if (piece === null) return " ";
-
-  if (piece.colour === "white") {
-    switch (piece.type) {
-      case "king":
-        return "♔";
-      case "queen":
-        return "♕";
-      case "rook":
-        return "♖";
-      case "bishop":
-        return "♗";
-      case "knight":
-        return "♘";
-      case "pawn":
-        return "♙";
-    }
-  }
 
   switch (piece.type) {
     case "king":
@@ -106,6 +87,29 @@ function chessboard(actions: Actions, gameState: GameState) {
   );
 }
 
+function convertPieceArrayToString(pieces: Piece[]) {
+  const stringArr = pieces.map((x) => pieceToGlyph(x));
+  return stringArr.join(" ");
+}
+
+function capturedPieceBox(captures: Piece[], colour: PieceColour) {
+  return Box(
+    {
+      id: `captured-${colour}-pieces`,
+      width: 7,
+      height: 5,
+      paddingLeft: 1,
+      margin: 5,
+      flexDirection: "row",
+      backgroundColor: grey,
+    },
+    Text({
+      content: convertPieceArrayToString(captures),
+      fg: colour === "white" ? white : black,
+    }),
+  );
+}
+
 function buildApp(
   actions: Actions,
   gameState: GameState,
@@ -114,10 +118,13 @@ function buildApp(
     {
       id: "app-root",
       flexGrow: 1,
+      flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
     },
+    capturedPieceBox(gameState.game.capturedPieces.black, "black"),
     chessboard(actions, gameState),
+    capturedPieceBox(gameState.game.capturedPieces.white, "white"),
   );
 }
 
