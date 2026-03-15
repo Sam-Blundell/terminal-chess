@@ -73,6 +73,17 @@ function initGameState(): GameState {
   };
 }
 
+function setFocusedSquare(gameState: GameState, position: Position): void {
+  gameState.ui.focusedSquare = position;
+}
+function clearFocusedSquare(gameState: GameState): boolean {
+  if (gameState.ui.focusedSquare) {
+    gameState.ui.focusedSquare = null;
+    return true;
+  }
+  return false;
+}
+
 function getSquare(board: Board, position: Position): Square {
   const { x, y } = position;
   const row = board[y];
@@ -130,5 +141,14 @@ function endTurn(gameState: GameState): void {
     gameState.game.currentTurn === "white" ? "black" : "white";
 }
 
-export { initGameState, getSquare, trySelectSquare, applyMove, endTurn, SIZE };
+export {
+  SIZE,
+  initGameState,
+  getSquare,
+  trySelectSquare,
+  applyMove,
+  endTurn,
+  setFocusedSquare,
+  clearFocusedSquare,
+};
 export type { PieceColour, Piece, Square, Board, GameState, Position, Move };

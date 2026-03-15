@@ -1,6 +1,6 @@
 import type { CliRenderer } from "@opentui/core";
 import type { GameState, Position } from "./game";
-import type { Actions } from "./view";
+import type { Actions, Direction } from "./actions";
 import { createCliRenderer, ConsolePosition } from "@opentui/core";
 import {
   initGameState,
@@ -8,6 +8,8 @@ import {
   getSquare,
   trySelectSquare,
   endTurn,
+  setFocusedSquare,
+  clearFocusedSquare,
 } from "./game";
 import { isLegalMove } from "./move-validation";
 import { buildApp } from "./view";
@@ -52,6 +54,42 @@ function handleBoardClick(gameState: GameState, position: Position): boolean {
   return true;
 }
 
+function handleFocusMove(gameState: GameState, direction: Direction): boolean {
+  const focusedSquare = gameState.ui.focusedSquare
+    ? { ...gameState.ui.focusedSquare }
+    : { x: 3, y: 3 };
+
+  let changedFlag = false;
+  if (direction === "up" && focusedSquare.y > 0) {
+    focusedSquare.y--;
+    changedFlag = true;
+  }
+  if (direction === "left" && focusedSquare.x > 0) {
+    focusedSquare.x--;
+    changedFlag = true;
+  }
+  if (direction === "down" && focusedSquare.y < 7) {
+    focusedSquare.y++;
+    changedFlag = true;
+  }
+  if (direction === "right" && focusedSquare.x < 7) {
+    focusedSquare.x++;
+    changedFlag = true;
+  }
+  if (changedFlag) {
+    setFocusedSquare(gameState, focusedSquare);
+  }
+  return changedFlag;
+}
+
+function handleCancelSelection(gameState: GameState): boolean {
+  if (gameState.ui.selectedSquare) {
+    gameState.ui.selectedSquare = null;
+    return true;
+  }
+  return false;
+}
+
 async function main() {
   const renderer = await createCliRenderer({
     useConsole: true,
@@ -60,16 +98,40 @@ async function main() {
       sizePercent: 20,
     },
   });
-  initKeyboard(renderer);
   const gameState = initGameState();
   const actions: Actions = {
     onSquareClick: (position: Position) => {
       const stateUpdated = handleBoardClick(gameState, position);
+      const focusCleared = clearFocusedSquare(gameState);
+      if (stateUpdated || focusCleared) {
+        render(renderer, actions, gameState);
+      }
+    },
+    onMoveFocus: (direction: Direction) => {
+      const uiUpdated = handleFocusMove(gameState, direction);
+      if (uiUpdated) {
+        render(renderer, actions, gameState);
+      }
+    },
+    onActivateFocusedSquare: () => {
+      if (!gameState.ui.focusedSquare) return;
+      const stateUpdated = handleBoardClick(
+        gameState,
+        gameState.ui.focusedSquare,
+      );
+      if (stateUpdated) {
+        render(renderer, actions, gameState);
+      }
+    },
+    onCancelSelection: () => {
+      const stateUpdated = handleCancelSelection(gameState);
       if (stateUpdated) {
         render(renderer, actions, gameState);
       }
     },
   };
+
+  initKeyboard(renderer, actions);
 
   render(renderer, actions, gameState);
 }

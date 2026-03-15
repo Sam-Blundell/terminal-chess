@@ -1,12 +1,15 @@
 import type { PieceColour, Piece, Square, GameState, Position } from "./game";
+import type { Actions } from "./actions";
 import { Box, Text } from "@opentui/core";
 import { SIZE, getSquare } from "./game";
 
 const CELL_WIDTH = 7;
 const CELL_HEIGHT = 3;
-const highlight = "#FF00FF";
-const light = "#eeeed2";
-const dark = "#769656";
+const selectedHighlight = "#ff3870";
+const focusedHighlight = "#5e94ff";
+const focusedAndSelectedHighlight = "#ac63ff";
+const lightSquare = "#eeeed2";
+const darkSquare = "#769656";
 const white = "#FFFFFF";
 const black = "#000000";
 const grey = "#979797";
@@ -30,9 +33,22 @@ function pieceToGlyph(piece: Square): string {
   }
 }
 
-type Actions = {
-  onSquareClick: (position: Position) => void;
-};
+function getSquareBackgroundColour(
+  gameState: GameState,
+  position: Position,
+  isDark: boolean,
+) {
+  const { selectedSquare, focusedSquare } = gameState.ui;
+  const isSelected =
+    selectedSquare?.x === position.x && selectedSquare?.y === position.y;
+  const isFocused =
+    focusedSquare?.x === position.x && focusedSquare?.y === position.y;
+  if (isFocused && isSelected) return focusedAndSelectedHighlight;
+  if (isFocused) return focusedHighlight;
+  if (isSelected) return selectedHighlight;
+  if (isDark) return darkSquare;
+  return lightSquare;
+}
 
 function cell(
   actions: Actions,
@@ -47,13 +63,7 @@ function cell(
       height: CELL_HEIGHT,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor:
-        gameState.ui.selectedSquare?.x === position.x &&
-        gameState.ui.selectedSquare?.y === position.y
-          ? highlight
-          : isDark
-            ? dark
-            : light,
+      backgroundColor: getSquareBackgroundColour(gameState, position, isDark),
       onMouseDown: () => {
         actions.onSquareClick(position);
       },
@@ -129,4 +139,3 @@ function buildApp(
 }
 
 export { buildApp };
-export type { Actions };
