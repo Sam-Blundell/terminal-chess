@@ -280,7 +280,7 @@ function isLegalMove(gameState: GameState, move: Move): boolean {
   // common checks for all pieces
   const startingPiece = getSquare(board, move.from);
   if (!startingPiece) {
-    throw new Error("No piece at the source square");
+    throw new Error("Missing piece at the from square");
   }
   const startAndTargetAreSame =
     move.from.x === move.to.x && move.from.y === move.to.y;
@@ -289,7 +289,9 @@ function isLegalMove(gameState: GameState, move: Move): boolean {
   }
   const targetPiece = getSquare(board, move.to);
   const targetIsFriendly = targetPiece?.colour === startingPiece.colour;
-  if (targetIsFriendly) {
+  const targetIsEnemyKing =
+    targetPiece?.type === "king" && targetPiece.colour !== startingPiece.colour;
+  if (targetIsFriendly || targetIsEnemyKing) {
     return false;
   }
 
