@@ -174,5 +174,6 @@ export {
   setFocusedSquare,
   clearFocusedSquare,
   applyOffset,
+  setSquare,
 };
 export type { PieceColour, Piece, Square, Board, GameState, Position, Move };
