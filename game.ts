@@ -18,6 +18,10 @@ type GameState = {
       white: Piece[];
       black: Piece[];
     };
+    kingPositions: {
+      white: Position;
+      black: Position;
+    };
   };
   ui: {
     focusedSquare: Position | null;
@@ -65,6 +69,10 @@ function initGameState(): GameState {
         white: [],
         black: [],
       },
+      kingPositions: {
+        white: { x: 4, y: 7 },
+        black: { x: 4, y: 0 },
+      },
     },
     ui: {
       focusedSquare: null,
@@ -93,6 +101,13 @@ function getSquare(board: Board, position: Position): Square {
   if (row[x] === undefined) {
     throw new Error("Invalid board coordinates");
   }
+  return row[x];
+}
+
+function tryGetSquare(board: Board, position: Position): Square | undefined {
+  const { x, y } = position;
+  const row = board[y];
+  if (row === undefined) return undefined;
   return row[x];
 }
 
@@ -131,6 +146,9 @@ function applyMove(gameState: GameState, move: Move): void {
   }
   setSquare(board, move.to, piece);
   setSquare(board, move.from, null);
+  if (piece.type === "king") {
+    gameState.game.kingPositions[piece.colour] = move.to;
+  }
 }
 
 function endTurn(gameState: GameState): void {
@@ -141,14 +159,20 @@ function endTurn(gameState: GameState): void {
     gameState.game.currentTurn === "white" ? "black" : "white";
 }
 
+function applyOffset(position: Position, offset: Position) {
+  return { x: position.x + offset.x, y: position.y + offset.y };
+}
+
 export {
   SIZE,
   initGameState,
   getSquare,
+  tryGetSquare,
   trySelectSquare,
   applyMove,
   endTurn,
   setFocusedSquare,
   clearFocusedSquare,
+  applyOffset,
 };
 export type { PieceColour, Piece, Square, Board, GameState, Position, Move };

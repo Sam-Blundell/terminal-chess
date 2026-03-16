@@ -36,7 +36,7 @@ function interactWithSquare(gameState: GameState, position: Position): boolean {
     return true;
   }
 
-  if (!isLegalMove(board, { from: selectedSquare, to: position })) {
+  if (!isLegalMove(gameState, { from: selectedSquare, to: position })) {
     return false;
   }
   applyMove(gameState, { from: selectedSquare, to: position });

@@ -1,5 +1,45 @@
-import type { Piece, Board, Move } from "./game";
-import { getSquare } from "./game";
+import type {
+  Piece,
+  Board,
+  Move,
+  Position,
+  PieceColour,
+  GameState,
+} from "./game";
+import { getSquare, tryGetSquare, applyOffset, applyMove } from "./game";
+
+const offsets = {
+  straight: [
+    { x: 0, y: -1 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+    { x: -1, y: 0 },
+  ],
+  diagonal: [
+    { x: -1, y: -1 },
+    { x: 1, y: -1 },
+    { x: -1, y: 1 },
+    { x: 1, y: 1 },
+  ],
+  knight: [
+    { x: 1, y: -2 },
+    { x: 2, y: -1 },
+    { x: 2, y: 1 },
+    { x: 1, y: 2 },
+    { x: -1, y: 2 },
+    { x: -2, y: 1 },
+    { x: -2, y: -1 },
+    { x: -1, y: -2 },
+  ],
+  blackPawn: [
+    { x: -1, y: -1 },
+    { x: 1, y: -1 },
+  ],
+  whitePawn: [
+    { x: -1, y: 1 },
+    { x: 1, y: 1 },
+  ],
+} as const;
 
 function isStraightLine(move: Move): boolean {
   const xChanged = move.from.x !== move.to.x;
@@ -17,20 +57,141 @@ function pathIsClear(board: Board, move: Move): boolean {
   const xDiff = move.to.x - move.from.x;
   const yDiff = move.to.y - move.from.y;
 
-  const xStep = xDiff === 0 ? 0 : xDiff > 0 ? 1 : -1;
-  const yStep = yDiff === 0 ? 0 : yDiff > 0 ? 1 : -1;
+  const step = {
+    x: xDiff === 0 ? 0 : xDiff > 0 ? 1 : -1,
+    y: yDiff === 0 ? 0 : yDiff > 0 ? 1 : -1,
+  };
 
-  const pointer = { x: move.from.x + xStep, y: move.from.y + yStep };
+  let pointer = applyOffset(move.from, step);
 
   while (pointer.x !== move.to.x || pointer.y !== move.to.y) {
     if (getSquare(board, pointer)) {
       return false;
     }
-    pointer.x += xStep;
-    pointer.y += yStep;
+    pointer = applyOffset(pointer, step);
   }
 
   return true;
+}
+
+function isPawnAttacking(
+  board: Board,
+  position: Position,
+  colour: PieceColour,
+): boolean {
+  const offsetsForColour =
+    colour === "white" ? offsets.whitePawn : offsets.blackPawn;
+  const attackers = offsetsForColour.map((offset) =>
+    tryGetSquare(board, applyOffset(position, offset)),
+  );
+  return attackers.some((piece) => {
+    return piece?.colour === colour && piece.type === "pawn";
+  });
+}
+
+function isKnightAttacking(
+  board: Board,
+  position: Position,
+  colour: PieceColour,
+): boolean {
+  const attackers = offsets.knight.map((offset) =>
+    tryGetSquare(board, applyOffset(position, offset)),
+  );
+  return attackers.some((piece) => {
+    return piece?.colour === colour && piece.type === "knight";
+  });
+}
+
+function isKingAttacking(
+  board: Board,
+  position: Position,
+  colour: PieceColour,
+): boolean {
+  const offsetsForKing = [...offsets.straight, ...offsets.diagonal];
+  const attackers = offsetsForKing.map((offset) =>
+    tryGetSquare(board, applyOffset(position, offset)),
+  );
+  return attackers.some((piece) => {
+    return piece?.colour === colour && piece.type === "king";
+  });
+}
+
+function searchRay(
+  board: Board,
+  position: Position,
+  direction: Position,
+): Piece | null {
+  let pointer = applyOffset(position, direction);
+
+  while (true) {
+    const square = tryGetSquare(board, pointer);
+    if (square === undefined) return null;
+    if (square !== null) return square;
+    pointer = applyOffset(pointer, direction);
+  }
+}
+
+function isBishopOrQueenAttacking(
+  board: Board,
+  position: Position,
+  colour: PieceColour,
+): boolean {
+  const attackers = offsets.diagonal.map((offset) =>
+    searchRay(board, position, offset),
+  );
+  return attackers.some((piece) => {
+    return (
+      piece?.colour === colour &&
+      (piece.type === "bishop" || piece.type === "queen")
+    );
+  });
+}
+
+function isRookOrQueenAttacking(
+  board: Board,
+  position: Position,
+  colour: PieceColour,
+): boolean {
+  const attackers = offsets.straight.map((offset) =>
+    searchRay(board, position, offset),
+  );
+  return attackers.some((piece) => {
+    return (
+      piece?.colour === colour &&
+      (piece.type === "rook" || piece.type === "queen")
+    );
+  });
+}
+
+function isSquareAttacked(
+  board: Board,
+  position: Position,
+  byColour: PieceColour,
+): boolean {
+  if (isPawnAttacking(board, position, byColour)) return true;
+  if (isKnightAttacking(board, position, byColour)) return true;
+  if (isKingAttacking(board, position, byColour)) return true;
+  if (isBishopOrQueenAttacking(board, position, byColour)) return true;
+  if (isRookOrQueenAttacking(board, position, byColour)) return true;
+  return false;
+}
+
+function wouldLeaveKingInCheck(
+  gameState: GameState,
+  move: Move,
+  movingColour: PieceColour,
+) {
+  const simulatedGameState = structuredClone(gameState);
+  applyMove(simulatedGameState, move);
+
+  const opponentColour = movingColour === "white" ? "black" : "white";
+  const kingPosition = simulatedGameState.game.kingPositions[movingColour];
+
+  return isSquareAttacked(
+    simulatedGameState.game.board,
+    kingPosition,
+    opponentColour,
+  );
 }
 
 function isLegalPawnMove(piece: Piece, board: Board, move: Move): boolean {
@@ -114,7 +275,8 @@ function isLegalKingMove(move: Move): boolean {
   return deltaX <= 1 && deltaY <= 1;
 }
 
-function isLegalMove(board: Board, move: Move): boolean {
+function isLegalMove(gameState: GameState, move: Move): boolean {
+  const { board } = gameState.game;
   // common checks for all pieces
   const startingPiece = getSquare(board, move.from);
   if (!startingPiece) {
@@ -131,22 +293,32 @@ function isLegalMove(board: Board, move: Move): boolean {
     return false;
   }
 
-  // specific piece checks
+  // specific piece movement checks
+  let movementLegal: boolean;
 
   switch (startingPiece.type) {
     case "pawn":
-      return isLegalPawnMove(startingPiece, board, move);
+      movementLegal = isLegalPawnMove(startingPiece, board, move);
+      break;
     case "rook":
-      return isLegalRookMove(board, move);
+      movementLegal = isLegalRookMove(board, move);
+      break;
     case "knight":
-      return isLegalKnightMove(move);
+      movementLegal = isLegalKnightMove(move);
+      break;
     case "bishop":
-      return isLegalBishopMove(board, move);
+      movementLegal = isLegalBishopMove(board, move);
+      break;
     case "queen":
-      return isLegalQueenMove(board, move);
+      movementLegal = isLegalQueenMove(board, move);
+      break;
     case "king":
-      return isLegalKingMove(move);
+      movementLegal = isLegalKingMove(move);
+      break;
   }
+  if (!movementLegal) return false;
+
+  return !wouldLeaveKingInCheck(gameState, move, startingPiece.colour);
 }
 
-export { isLegalMove };
+export { isLegalMove, isSquareAttacked };
