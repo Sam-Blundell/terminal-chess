@@ -94,4 +94,4 @@ export {
   setSquare,
   isCastleAttempt,
 };
-export type { PieceColour, Piece, Square, Board, Position, Move };
+export type { PieceColour, PieceType, Piece, Square, Board, Position, Move };
