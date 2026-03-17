@@ -71,7 +71,7 @@ function cell(
     },
     Text({
       content: pieceToGlyph(piece),
-      fg: piece?.colour === "white" ? "#ffffff" : "#000000",
+      fg: piece?.colour === "white" ? white : black,
     }),
   );
 }
