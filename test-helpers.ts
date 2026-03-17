@@ -1,4 +1,5 @@
-import type { Board, GameState } from "./game";
+import type { Board } from "./game";
+import type { GameState } from "./state";
 import { setSquare, SIZE } from "./game";
 
 function createEmptyBoard(): Board {

@@ -1,13 +1,7 @@
-import type {
-  Piece,
-  Board,
-  Move,
-  Position,
-  PieceColour,
-  GameState,
-} from "./game";
-import { getSquare, tryGetSquare, applyOffset, applyMove } from "./game";
-import { isCastleAttempt } from "./rules-helpers";
+import type { Piece, Board, Move, Position, PieceColour } from "./game";
+import type { GameState } from "./state";
+import { getSquare, tryGetSquare, applyOffset, isCastleAttempt } from "./game";
+import { applyMove } from "./move-application";
 
 const offsets = {
   straight: [

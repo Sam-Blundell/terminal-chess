@@ -1,4 +1,5 @@
-import type { PieceColour, Piece, Square, GameState, Position } from "./game";
+import type { PieceColour, Piece, Square, Position } from "./game";
+import type { GameState } from "./state";
 import type { Actions } from "./actions";
 import { Box, Text } from "@opentui/core";
 import { SIZE, getSquare } from "./game";

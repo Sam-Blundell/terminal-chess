@@ -1,14 +1,21 @@
-import type { GameState, Position } from "./game";
+import type { Position } from "./game";
+import type { GameState } from "./state";
 import type { Actions, Direction } from "./actions";
-import {
-  getSquare,
-  trySelectSquare,
-  applyMove,
-  endTurn,
-  setFocusedSquare,
-  clearFocusedSquare,
-} from "./game";
+import { getSquare } from "./game";
+import { advanceTurn } from "./state";
 import { isLegalMove } from "./move-validation";
+import { applyMove } from "./move-application";
+
+function trySelectSquare(gameState: GameState, position: Position): boolean {
+  const square = getSquare(gameState.game.board, position);
+  const pieceIsCurrentTurnColour =
+    square !== null && gameState.game.currentTurn === square.colour;
+  if (pieceIsCurrentTurnColour) {
+    gameState.ui.selectedSquare = position;
+    return true;
+  }
+  return false;
+}
 
 function interactWithSquare(gameState: GameState, position: Position): boolean {
   const { selectedSquare } = gameState.ui;
@@ -40,8 +47,17 @@ function interactWithSquare(gameState: GameState, position: Position): boolean {
     return false;
   }
   applyMove(gameState, { from: selectedSquare, to: position });
-  endTurn(gameState);
+  gameState.ui.selectedSquare = null;
+  advanceTurn(gameState);
   return true;
+}
+
+function clearFocusedSquare(gameState: GameState): boolean {
+  if (gameState.ui.focusedSquare) {
+    gameState.ui.focusedSquare = null;
+    return true;
+  }
+  return false;
 }
 
 function moveFocus(gameState: GameState, direction: Direction): boolean {
@@ -67,7 +83,7 @@ function moveFocus(gameState: GameState, direction: Direction): boolean {
     changedFlag = true;
   }
   if (changedFlag) {
-    setFocusedSquare(gameState, focusedSquare);
+    gameState.ui.focusedSquare = focusedSquare;
   }
   return changedFlag;
 }
