@@ -23,6 +23,18 @@ function createMinimalGameState(): GameState {
         white: { x: 4, y: 7 },
         black: { x: 4, y: 0 },
       },
+      castlingRights: {
+        white: {
+          kingHasMoved: false,
+          kingsideRookHasMoved: false,
+          queensideRookHasMoved: false,
+        },
+        black: {
+          kingHasMoved: false,
+          kingsideRookHasMoved: false,
+          queensideRookHasMoved: false,
+        },
+      },
     },
     ui: {
       focusedSquare: null,

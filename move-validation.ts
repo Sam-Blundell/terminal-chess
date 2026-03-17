@@ -7,6 +7,7 @@ import type {
   GameState,
 } from "./game";
 import { getSquare, tryGetSquare, applyOffset, applyMove } from "./game";
+import { isCastleAttempt } from "./rules-helpers";
 
 const offsets = {
   straight: [
@@ -275,6 +276,45 @@ function isLegalKingMove(move: Move): boolean {
   return deltaX <= 1 && deltaY <= 1;
 }
 
+function isLegalCastlingMove(
+  gameState: GameState,
+  piece: Piece,
+  move: Move,
+): boolean {
+  if (piece.type !== "king") return false;
+  if (move.to.y !== move.from.y) return false;
+  if (Math.abs(move.to.x - move.from.x) !== 2) return false;
+
+  const { board, castlingRights } = gameState.game;
+  const enemyColour = piece.colour === "white" ? "black" : "white";
+  const homeRank = piece.colour === "white" ? 7 : 0;
+  const isKingside = move.to.x === move.from.x + 2;
+
+  const rookPosition = isKingside
+    ? { x: 7, y: homeRank }
+    : { x: 0, y: homeRank };
+
+  const transitSquare = isKingside
+    ? { x: move.from.x + 1, y: homeRank }
+    : { x: move.from.x - 1, y: homeRank };
+
+  const rook = getSquare(board, rookPosition);
+  if (!rook || rook.type !== "rook" || rook.colour !== piece.colour) {
+    return false;
+  }
+
+  const rights = castlingRights[piece.colour];
+  if (rights.kingHasMoved) return false;
+  if (isKingside && rights.kingsideRookHasMoved) return false;
+  if (!isKingside && rights.queensideRookHasMoved) return false;
+
+  if (isSquareAttacked(board, move.from, enemyColour)) return false;
+  if (isSquareAttacked(board, transitSquare, enemyColour)) return false;
+  if (isSquareAttacked(board, move.to, enemyColour)) return false;
+
+  return pathIsClear(board, { from: move.from, to: rookPosition });
+}
+
 function isLegalMove(gameState: GameState, move: Move): boolean {
   const { board } = gameState.game;
   // common checks for all pieces
@@ -289,11 +329,14 @@ function isLegalMove(gameState: GameState, move: Move): boolean {
   }
   const targetPiece = getSquare(board, move.to);
   const targetIsFriendly = targetPiece?.colour === startingPiece.colour;
-  const targetIsEnemyKing =
-    targetPiece?.type === "king" && targetPiece.colour !== startingPiece.colour;
-  if (targetIsFriendly || targetIsEnemyKing) {
-    return false;
+  const targetIsEnemyKing = targetPiece?.type === "king" && !targetIsFriendly;
+
+  // check special castling case
+  if (isCastleAttempt(startingPiece, move)) {
+    return isLegalCastlingMove(gameState, startingPiece, move);
   }
+
+  if (targetIsEnemyKing || targetIsFriendly) return false;
 
   // specific piece movement checks
   let movementLegal: boolean;
