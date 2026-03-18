@@ -1,8 +1,9 @@
 import type { PieceColour, Piece, Square, Position } from "./game";
-import type { GameState } from "./state";
+import type { GameState, PromotionOptions } from "./state";
 import type { Actions } from "./actions";
-import { Box, Text } from "@opentui/core";
+import { Box, Text, Select, SelectRenderableEvents } from "@opentui/core";
 import { SIZE, getSquare } from "./game";
+import { positionToChessNotation } from "./notation-helpers";
 
 const CELL_WIDTH = 7;
 const CELL_HEIGHT = 3;
@@ -14,6 +15,7 @@ const darkSquare = "#769656";
 const white = "#FFFFFF";
 const black = "#000000";
 const grey = "#979797";
+const yellow = "#fffb00";
 
 function pieceToGlyph(piece: Square): string {
   if (piece === null) return " ";
@@ -121,6 +123,90 @@ function capturedPieceBox(captures: Piece[], colour: PieceColour) {
   );
 }
 
+const promotionMenuOptions: {
+  name: string;
+  description: string;
+  value: PromotionOptions;
+}[] = [
+  { name: "Queen", description: "", value: "queen" },
+  { name: "Bishop", description: "", value: "bishop" },
+  { name: "Rook", description: "", value: "rook" },
+  { name: "Knight", description: "", value: "knight" },
+];
+
+function buildPromotionMenu(
+  onConfirmPromotion: (type: PromotionOptions) => void,
+) {
+  const promotionMenu = Select({
+    id: "promotionMenu",
+    width: 30,
+    height: 8,
+    backgroundColor: black,
+    selectedBackgroundColor: black,
+    focusedBackgroundColor: black,
+    selectedTextColor: yellow,
+    options: promotionMenuOptions,
+  });
+
+  promotionMenu.on(SelectRenderableEvents.ITEM_SELECTED, (_, option) => {
+    onConfirmPromotion(option.value);
+  });
+
+  promotionMenu.focus();
+
+  return promotionMenu;
+}
+
+function promotionModal(
+  gameState: GameState,
+  onConfirmPromotion: (type: PromotionOptions) => void,
+) {
+  const { mode } = gameState.ui;
+  if (mode.type !== "promotion") {
+    throw new Error("promotion modal opened when not in promotion mode");
+  }
+
+  const promotionMenu = buildPromotionMenu(onConfirmPromotion);
+
+  return Box(
+    {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    Box(
+      {
+        width: 30,
+        height: 10,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: black,
+      },
+      Text({
+        content: `Promote the pawn at ${positionToChessNotation(mode.position)}`,
+      }),
+      promotionMenu,
+    ),
+  );
+}
+
+function boardLayout(actions: Actions, gameState: GameState) {
+  return Box(
+    {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    capturedPieceBox(gameState.game.capturedPieces.black, "black"),
+    chessboard(actions, gameState),
+    capturedPieceBox(gameState.game.capturedPieces.white, "white"),
+  );
+}
+
 function buildApp(
   actions: Actions,
   gameState: GameState,
@@ -129,13 +215,13 @@ function buildApp(
     {
       id: "app-root",
       flexGrow: 1,
-      flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
     },
-    capturedPieceBox(gameState.game.capturedPieces.black, "black"),
-    chessboard(actions, gameState),
-    capturedPieceBox(gameState.game.capturedPieces.white, "white"),
+    boardLayout(actions, gameState),
+    gameState.ui.mode.type === "promotion"
+      ? promotionModal(gameState, actions.onConfirmPromotion)
+      : null,
   );
 }
 

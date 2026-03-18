@@ -26,7 +26,18 @@ type GameData = {
   };
 };
 
+type PromotionOptions = "rook" | "knight" | "bishop" | "queen";
+
+type UIMode =
+  | { type: "normal" }
+  | {
+      type: "promotion";
+      position: Position;
+      colour: PieceColour;
+    };
+
 type UIState = {
+  mode: UIMode;
   focusedSquare: Position | null;
   selectedSquare: Position | null;
 };
@@ -63,9 +74,26 @@ function initGameState(): GameState {
       },
     },
     ui: {
+      mode: { type: "normal" },
       focusedSquare: null,
       selectedSquare: null,
     },
+  };
+}
+
+function setNormalMode(gameState: GameState): void {
+  gameState.ui.mode = { type: "normal" };
+}
+
+function setPromotionMode(
+  gameState: GameState,
+  position: Position,
+  colour: PieceColour,
+): void {
+  gameState.ui.mode = {
+    type: "promotion",
+    position,
+    colour,
   };
 }
 
@@ -74,5 +102,5 @@ function advanceTurn(gameState: GameState): void {
     gameState.game.currentTurn === "white" ? "black" : "white";
 }
 
-export type { GameState };
-export { initGameState, advanceTurn };
+export type { GameState, UIMode, PromotionOptions };
+export { initGameState, advanceTurn, setNormalMode, setPromotionMode };
