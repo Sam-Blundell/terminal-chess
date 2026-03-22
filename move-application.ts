@@ -1,7 +1,11 @@
 import type { Position, Piece, Move } from "./game";
 import type { GameState } from "./state";
 import { getSquare, setSquare } from "./game";
-import { isCastleAttempt } from "./game";
+import {
+  isCastleAttempt,
+  isEnPassantCapture,
+  isPawnDoubleMove,
+} from "./special-moves";
 
 // Castling rights are invalidated when the king moves or
 // when any move originates from an original rook square.
@@ -65,15 +69,68 @@ function applyCastling(gameState: GameState, piece: Piece, move: Move): void {
   ] = true;
 }
 
+function setEnPassant(gameState: GameState, move: Move): void {
+  const yPos = (move.from.y + move.to.y) / 2;
+  gameState.game.enPassant = { x: move.from.x, y: yPos };
+}
+
+function applyEnPassantCapture(gameState: GameState, move: Move): void {
+  const { board } = gameState.game;
+  const piece = getSquare(board, move.from);
+
+  if (!piece) {
+    throw new Error("origin square empty inside applyEnPassantCapture");
+  }
+
+  if (piece.type !== "pawn") {
+    throw new Error("non-pawn passed to applyEnPassantCapture");
+  }
+
+  const capturedPawnYOffset = piece.colour === "black" ? -1 : 1;
+  const enemyPawnPosition = {
+    x: move.to.x,
+    y: move.to.y + capturedPawnYOffset,
+  };
+
+  const enemyPawn = getSquare(board, enemyPawnPosition);
+  if (
+    !enemyPawn ||
+    enemyPawn.type !== "pawn" ||
+    enemyPawn.colour === piece.colour
+  ) {
+    throw new Error("invalid captured pawn inside applyEnPassantCapture");
+  }
+
+  gameState.game.capturedPieces[enemyPawn.colour].push(enemyPawn);
+
+  setSquare(board, move.from, null);
+  setSquare(board, enemyPawnPosition, null);
+  setSquare(board, move.to, piece);
+}
+
 function applyMove(gameState: GameState, move: Move): void {
   const { board } = gameState.game;
   const piece = getSquare(board, move.from);
   if (!piece) {
     throw new Error("No piece at the source square");
   }
+
   if (isCastleAttempt(piece, move)) {
+    gameState.game.enPassant = null;
     applyCastling(gameState, piece, move);
     return;
+  }
+
+  if (isEnPassantCapture(gameState, piece, move)) {
+    gameState.game.enPassant = null;
+    applyEnPassantCapture(gameState, move);
+    return;
+  }
+
+  gameState.game.enPassant = null;
+
+  if (isPawnDoubleMove(piece, move)) {
+    setEnPassant(gameState, move);
   }
   const targetPiece = getSquare(board, move.to);
 

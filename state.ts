@@ -24,6 +24,7 @@ type GameData = {
       queensideRookHasMoved: boolean;
     };
   };
+  enPassant: Position | null;
 };
 
 type PromotionOptions = "rook" | "knight" | "bishop" | "queen";
@@ -72,6 +73,7 @@ function initGameState(): GameState {
           queensideRookHasMoved: false,
         },
       },
+      enPassant: null,
     },
     ui: {
       mode: { type: "normal" },

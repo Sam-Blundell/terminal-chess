@@ -1,6 +1,7 @@
 import type { Piece, Board, Move, Position, PieceColour } from "./game";
 import type { GameState } from "./state";
-import { getSquare, tryGetSquare, applyOffset, isCastleAttempt } from "./game";
+import { getSquare, tryGetSquare, applyOffset } from "./game";
+import { isCastleAttempt, isEnPassantCapture } from "./special-moves";
 import { applyMove } from "./move-application";
 
 const offsets = {
@@ -189,7 +190,12 @@ function wouldLeaveKingInCheck(
   );
 }
 
-function isLegalPawnMove(piece: Piece, board: Board, move: Move): boolean {
+function isLegalPawnMove(
+  gameState: GameState,
+  piece: Piece,
+  move: Move,
+): boolean {
+  const { board } = gameState.game;
   const { colour } = piece;
   const deltaX = move.to.x - move.from.x;
   const deltaY = move.to.y - move.from.y;
@@ -207,6 +213,8 @@ function isLegalPawnMove(piece: Piece, board: Board, move: Move): boolean {
   }
 
   if (forwardDistance > 2 || horizontalDistance > 1) return false;
+
+  if (isEnPassantCapture(gameState, piece, move)) return true;
 
   const targetSquare = getSquare(board, move.to);
   const targetSquareOccupied = !!targetSquare;
@@ -337,7 +345,7 @@ function isLegalMove(gameState: GameState, move: Move): boolean {
 
   switch (startingPiece.type) {
     case "pawn":
-      movementLegal = isLegalPawnMove(startingPiece, board, move);
+      movementLegal = isLegalPawnMove(gameState, startingPiece, move);
       break;
     case "rook":
       movementLegal = isLegalRookMove(board, move);

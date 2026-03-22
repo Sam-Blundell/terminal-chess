@@ -73,25 +73,9 @@ function setSquare(board: Board, position: Position, newValue: Square): void {
   row[x] = newValue;
 }
 
-function isCastleAttempt(piece: Piece, move: Move): boolean {
-  return (
-    piece.type === "king" &&
-    move.from.y === move.to.y &&
-    Math.abs(move.to.x - move.from.x) === 2
-  );
-}
-
 function applyOffset(position: Position, offset: Position): Position {
   return { x: position.x + offset.x, y: position.y + offset.y };
 }
 
-export {
-  SIZE,
-  createBoard,
-  getSquare,
-  tryGetSquare,
-  applyOffset,
-  setSquare,
-  isCastleAttempt,
-};
+export { SIZE, createBoard, getSquare, tryGetSquare, applyOffset, setSquare };
 export type { PieceColour, PieceType, Piece, Square, Board, Position, Move };

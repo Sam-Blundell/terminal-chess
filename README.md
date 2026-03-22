@@ -1,15 +1,5 @@
-# my-tui
+# Terminal Chess
 
-To install dependencies:
+A terminal-based chess game built with OpenTUI.
 
-```bash
-bun install
-```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.3.10. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+Currently being developed as an offline pass-and-play experience with a rules-complete chess engine.
