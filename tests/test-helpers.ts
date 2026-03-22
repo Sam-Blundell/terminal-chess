@@ -37,6 +37,7 @@ function createMinimalGameState(): GameState {
           queensideRookHasMoved: false,
         },
       },
+      enPassant: null,
     },
     ui: {
       mode: { type: "normal" },
