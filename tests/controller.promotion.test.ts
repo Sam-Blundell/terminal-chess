@@ -143,7 +143,6 @@ describe("promotion flow", () => {
 
   test("confirming promotion advances the turn", () => {
     placePieces(gameState, ["K-e1", "k-e8", "P-a7"]);
-    gameState.game.currentTurn = "white";
 
     actions.onInteractWithSquare(chessNotationToPosition("a7"));
     actions.onInteractWithSquare(chessNotationToPosition("a8"));
