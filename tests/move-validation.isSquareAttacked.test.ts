@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { createEmptyBoard } from "./test-helpers";
-import { setSquare } from "../game";
-import { isSquareAttacked } from "../move-validation";
+import { setSquare } from "../src/engine/game";
+import { isSquareAttacked } from "../src/engine/move-validation";
 
 describe("isSquareAttacked", () => {
   let board: ReturnType<typeof createEmptyBoard>;

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { isLegalMove } from "../move-validation";
-import { applyMove } from "../move-application";
-import { chessNotationToPosition } from "../notation-helpers";
+import { isLegalMove } from "../src/engine/move-validation";
+import { applyMove } from "../src/engine/move-application";
+import { chessNotationToPosition } from "../src/engine/notation-helpers";
 import { createMinimalGameState, placePieces } from "./test-helpers";
 
 describe("isLegalMove en passant", () => {

@@ -1,10 +1,10 @@
 import type { CliRenderer } from "@opentui/core";
-import type { GameState } from "./state";
+import type { GameState } from "../engine/state";
 import type { Actions } from "./actions";
 import { createCliRenderer, ConsolePosition } from "@opentui/core";
-import { initGameState } from "./state";
+import { initGameState } from "../engine/state";
 import { initActions } from "./controller";
-import { buildApp } from "./view";
+import { buildApp } from "../ui/view";
 import { initKeyboard } from "./keyboard";
 
 function render(

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { createMinimalGameState } from "./test-helpers";
-import { setSquare } from "../game";
-import { isLegalMove } from "../move-validation";
+import { setSquare } from "../src/engine/game";
+import { isLegalMove } from "../src/engine/move-validation";
 
 describe("isLegalMove", () => {
   let gameState: ReturnType<typeof createMinimalGameState>;

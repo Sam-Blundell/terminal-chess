@@ -1,7 +1,7 @@
-import type { Board, Piece, Position } from "../game";
-import type { GameState } from "../state";
-import { setSquare, SIZE } from "../game";
-import { pieceMap, fileMap, rankToRow } from "../notation-helpers";
+import type { Board, Piece, Position } from "../src/engine/game";
+import type { GameState } from "../src/engine/state";
+import { setSquare, SIZE } from "../src/engine/game";
+import { pieceMap, fileMap, rankToRow } from "../src/engine/notation-helpers";
 
 function createEmptyBoard(): Board {
   return Array.from({ length: SIZE }, () =>

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { getSquare } from "../game";
-import { initActions } from "../controller";
-import { chessNotationToPosition } from "../notation-helpers";
+import { getSquare } from "../src/engine/game";
+import { initActions } from "../src/app/controller";
+import { chessNotationToPosition } from "../src/engine/notation-helpers";
 import { createMinimalGameState, placePieces } from "./test-helpers";
 
 describe("promotion flow", () => {

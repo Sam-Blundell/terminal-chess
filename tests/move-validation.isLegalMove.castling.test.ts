@@ -1,8 +1,10 @@
-import type { Square, Position } from "../game";
+import type { Square, Position } from "../src/engine/game";
 import { beforeEach, describe, expect, test } from "bun:test";
-import { createMinimalGameState } from "./test-helpers";
-import { setSquare } from "../game";
-import { isLegalMove } from "../move-validation";
+import { createMinimalGameState, placePieces } from "./test-helpers";
+import { setSquare } from "../src/engine/game";
+import { applyMove } from "../src/engine/move-application";
+import { isLegalMove } from "../src/engine/move-validation";
+import { chessNotationToPosition } from "../src/engine/notation-helpers";
 
 describe("isLegalMove", () => {
   let gameState: ReturnType<typeof createMinimalGameState>;
@@ -198,6 +200,43 @@ describe("isLegalMove", () => {
       expect(
         isLegalMove(gameState, { from: blackKingPos, to: { x: 2, y: 0 } }),
       ).toBe(false);
+    });
+
+    describe("regressions", () => {
+      test("castling is illegal if the original rook is captured (even if another rook later occupies the corner)", () => {
+        placePieces(gameState, ["K-e1", "k-e8", "R-h1", "R-h2", "r-h8"]);
+
+        // Black captures the original white rook on h1.
+        applyMove(gameState, {
+          from: chessNotationToPosition("h8"),
+          to: chessNotationToPosition("h1"),
+        });
+
+        // A different white rook captures onto h1.
+        applyMove(gameState, {
+          from: chessNotationToPosition("h2"),
+          to: chessNotationToPosition("h1"),
+        });
+
+        expect(
+          isLegalMove(gameState, {
+            from: chessNotationToPosition("e1"),
+            to: chessNotationToPosition("g1"),
+          }),
+        ).toBe(false);
+      });
+
+      test("castling is illegal when the king does not start on e1/e8", () => {
+        placePieces(gameState, ["K-d1", "k-e8", "R-h1"]);
+
+        // This is an illegal castle attempt from d1 -> f1.
+        expect(
+          isLegalMove(gameState, {
+            from: chessNotationToPosition("d1"),
+            to: chessNotationToPosition("f1"),
+          }),
+        ).toBe(false);
+      });
     });
   });
 });

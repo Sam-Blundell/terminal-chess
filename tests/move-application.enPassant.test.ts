@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { applyMove } from "../move-application";
-import { getSquare } from "../game";
-import { chessNotationToPosition } from "../notation-helpers";
+import { applyMove } from "../src/engine/move-application";
+import { getSquare } from "../src/engine/game";
+import { chessNotationToPosition } from "../src/engine/notation-helpers";
 import { createMinimalGameState, placePieces } from "./test-helpers";
 
 describe("applyMove en passant", () => {

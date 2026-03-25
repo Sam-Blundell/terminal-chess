@@ -1,9 +1,13 @@
-import type { PieceColour, Piece, Square, Position } from "./game";
-import type { GameState, PromotionOptions, GameOverOptions } from "./state";
-import type { Actions } from "./actions";
+import type { PieceColour, Piece, Square, Position } from "../engine/game";
+import type {
+  GameState,
+  PromotionOptions,
+  GameOverOptions,
+} from "../engine/state";
+import type { Actions } from "../app/actions";
 import { Box, Text, Select, SelectRenderableEvents } from "@opentui/core";
-import { SIZE, getSquare } from "./game";
-import { positionToChessNotation } from "./notation-helpers";
+import { SIZE, getSquare } from "../engine/game";
+import { positionToChessNotation } from "../engine/notation-helpers";
 
 const CELL_WIDTH = 7;
 const CELL_HEIGHT = 3;

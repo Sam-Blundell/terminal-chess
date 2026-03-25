@@ -1,18 +1,22 @@
-import type { Position } from "./game";
-import type { GameState, PromotionOptions, GameOverOptions } from "./state";
+import type { Position } from "../engine/game";
+import type {
+  GameState,
+  PromotionOptions,
+  GameOverOptions,
+} from "../engine/state";
 import type { Actions, Direction } from "./actions";
-import { getSquare, setSquare } from "./game";
+import { getSquare, setSquare } from "../engine/game";
 import {
   advanceTurn,
   setNormalMode,
   setPromotionMode,
   setGameOverMode,
   initGameState,
-} from "./state";
-import { isLegalMove } from "./move-validation";
-import { applyMove } from "./move-application";
-import { isPromotionMove } from "./special-moves";
-import { getGameEndStatus } from "./game-status";
+} from "../engine/state";
+import { isLegalMove } from "../engine/move-validation";
+import { applyMove } from "../engine/move-application";
+import { isPromotionMove } from "../engine/special-moves";
+import { getGameEndStatus } from "../engine/game-status";
 
 function moveBoardFocus(gameState: GameState, direction: Direction): boolean {
   const focusedSquare = gameState.ui.focusedSquare

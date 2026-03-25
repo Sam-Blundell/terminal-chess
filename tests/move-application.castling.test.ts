@@ -1,8 +1,8 @@
-import type { Position, Square } from "../game";
+import type { Position, Square } from "../src/engine/game";
 import { beforeEach, describe, expect, test } from "bun:test";
 import { createMinimalGameState } from "./test-helpers";
-import { setSquare, getSquare } from "../game";
-import { applyMove } from "../move-application";
+import { setSquare, getSquare } from "../src/engine/game";
+import { applyMove } from "../src/engine/move-application";
 
 describe("applyMove castling", () => {
   let gameState: ReturnType<typeof createMinimalGameState>;
