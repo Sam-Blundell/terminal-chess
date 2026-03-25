@@ -295,6 +295,10 @@ function isLegalCastlingMove(
   const homeRank = piece.colour === "white" ? 7 : 0;
   const isKingside = move.to.x === move.from.x + 2;
 
+  if (move.from.x !== 4 || move.from.y !== homeRank) {
+    return false;
+  }
+
   const rookPosition = isKingside
     ? { x: 7, y: homeRank }
     : { x: 0, y: homeRank };
