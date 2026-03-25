@@ -1,4 +1,5 @@
 import type { Board, PieceColour, Piece, Position } from "./game";
+import type { GameEndStatus } from "./game-status";
 import { createBoard } from "./game";
 
 type GameData = {
@@ -28,6 +29,7 @@ type GameData = {
 };
 
 type PromotionOptions = "rook" | "knight" | "bishop" | "queen";
+type GameOverOptions = "newGame" | "quit";
 
 type UIMode =
   | { type: "normal" }
@@ -35,6 +37,11 @@ type UIMode =
       type: "promotion";
       position: Position;
       colour: PieceColour;
+    }
+  | {
+      type: "gameover";
+      result: GameEndStatus;
+      colour: PieceColour | null;
     };
 
 type UIState = {
@@ -99,10 +106,24 @@ function setPromotionMode(
   };
 }
 
+function setGameOverMode(
+  gameState: GameState,
+  result: GameEndStatus,
+  colour: PieceColour,
+): void {
+  gameState.ui.mode = { type: "gameover", result, colour };
+}
+
 function advanceTurn(gameState: GameState): void {
   gameState.game.currentTurn =
     gameState.game.currentTurn === "white" ? "black" : "white";
 }
 
-export type { GameState, UIMode, PromotionOptions };
-export { initGameState, advanceTurn, setNormalMode, setPromotionMode };
+export type { GameState, UIMode, PromotionOptions, GameOverOptions };
+export {
+  initGameState,
+  advanceTurn,
+  setNormalMode,
+  setPromotionMode,
+  setGameOverMode,
+};

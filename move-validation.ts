@@ -53,6 +53,10 @@ function pathIsClear(board: Board, move: Move): boolean {
   const xDiff = move.to.x - move.from.x;
   const yDiff = move.to.y - move.from.y;
 
+  if (!isStraightLine(move) && !isDiagonalLine(move)) {
+    throw new Error("pathIsClear called with non-linear move");
+  }
+
   const step = {
     x: xDiff === 0 ? 0 : xDiff > 0 ? 1 : -1,
     y: yDiff === 0 ? 0 : yDiff > 0 ? 1 : -1,
@@ -220,7 +224,6 @@ function isLegalPawnMove(
   const targetSquareOccupied = !!targetSquare;
   const targetSquareIsEnemy =
     targetSquare !== null && targetSquare.colour !== colour;
-  const clearPath = pathIsClear(board, move);
 
   // moving diagonally
   if (horizontalDistance === 1) {
@@ -236,7 +239,7 @@ function isLegalPawnMove(
       forwardDistance === 2 &&
       isFirstMove &&
       !targetSquareOccupied &&
-      clearPath
+      pathIsClear(board, move)
     ) {
       return true;
     }

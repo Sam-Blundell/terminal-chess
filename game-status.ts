@@ -46,3 +46,4 @@ function getGameEndStatus(
 }
 
 export { getGameEndStatus, kingIsInCheck, legalMovesExist };
+export type { GameEndStatus };

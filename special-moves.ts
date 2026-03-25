@@ -18,6 +18,14 @@ function isPawnDoubleMove(piece: Piece, move: Move): boolean {
   );
 }
 
+function isPromotionMove(piece: Piece, move: Move): boolean {
+  if (piece.type !== "pawn") return false;
+  return (
+    (piece.colour === "white" && move.to.y === 0) ||
+    (piece.colour === "black" && move.to.y === 7)
+  );
+}
+
 function isEnPassantCapture(
   gameState: GameState,
   piece: Piece,
@@ -50,4 +58,9 @@ function isEnPassantCapture(
   return true;
 }
 
-export { isCastleAttempt, isPawnDoubleMove, isEnPassantCapture };
+export {
+  isCastleAttempt,
+  isPromotionMove,
+  isPawnDoubleMove,
+  isEnPassantCapture,
+};

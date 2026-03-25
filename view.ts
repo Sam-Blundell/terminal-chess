@@ -1,5 +1,5 @@
 import type { PieceColour, Piece, Square, Position } from "./game";
-import type { GameState, PromotionOptions } from "./state";
+import type { GameState, PromotionOptions, GameOverOptions } from "./state";
 import type { Actions } from "./actions";
 import { Box, Text, Select, SelectRenderableEvents } from "@opentui/core";
 import { SIZE, getSquare } from "./game";
@@ -194,6 +194,87 @@ function promotionModal(
   );
 }
 
+const gameOverMenuOptions: {
+  name: string;
+  description: string;
+  value: GameOverOptions;
+}[] = [
+  { name: "New Game", description: "", value: "newGame" },
+  { name: "Quit", description: "", value: "quit" },
+];
+
+function buildGameOverMenu(onSelect: (type: GameOverOptions) => void) {
+  const gameOverMenu = Select({
+    id: "gameOverMenu",
+    width: 12,
+    height: 4,
+    backgroundColor: black,
+    selectedBackgroundColor: black,
+    focusedBackgroundColor: black,
+    selectedTextColor: yellow,
+    options: gameOverMenuOptions,
+  });
+
+  gameOverMenu.on(SelectRenderableEvents.ITEM_SELECTED, (_, option) => {
+    onSelect(option.value);
+  });
+
+  gameOverMenu.focus();
+
+  return gameOverMenu;
+}
+
+function gameOverModal(
+  gameState: GameState,
+  onSelect: (type: GameOverOptions) => void,
+) {
+  const { mode } = gameState.ui;
+  if (mode.type !== "gameover") {
+    throw new Error("gameOver modal opened when not in gameover mode");
+  }
+
+  const gameOverMenu = buildGameOverMenu(onSelect);
+
+  const contentString =
+    mode.result === "Checkmate"
+      ? `Game Over - ${mode.colour === "black" ? "White" : "Black"} wins by checkmate`
+      : "Game over - Stalemate";
+
+  return Box(
+    {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    Box(
+      {
+        padding: 1,
+        marginBottom: 1,
+        justifyContent: "center",
+        backgroundColor: white,
+      },
+      Text({
+        content: contentString,
+        fg: "black",
+      }),
+    ),
+    Box(
+      {
+        width: 16,
+        height: 6,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: black,
+      },
+      gameOverMenu,
+    ),
+  );
+}
+
 function boardLayout(actions: Actions, gameState: GameState) {
   return Box(
     {
@@ -221,6 +302,9 @@ function buildApp(
     boardLayout(actions, gameState),
     gameState.ui.mode.type === "promotion"
       ? promotionModal(gameState, actions.onConfirmPromotion)
+      : null,
+    gameState.ui.mode.type === "gameover"
+      ? gameOverModal(gameState, actions.onConfirmGameOverChoice)
       : null,
   );
 }

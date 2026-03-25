@@ -32,7 +32,11 @@ async function main() {
     render(renderer, actions, gameState);
   }
 
-  actions = initActions(gameState, reRender);
+  function quit() {
+    renderer.destroy();
+  }
+
+  actions = initActions(gameState, reRender, quit);
   initKeyboard(renderer, actions);
   reRender();
 }

@@ -1,10 +1,18 @@
-import type { Piece, Position } from "./game";
-import type { GameState, PromotionOptions } from "./state";
+import type { Position } from "./game";
+import type { GameState, PromotionOptions, GameOverOptions } from "./state";
 import type { Actions, Direction } from "./actions";
 import { getSquare, setSquare } from "./game";
-import { advanceTurn, setNormalMode, setPromotionMode } from "./state";
+import {
+  advanceTurn,
+  setNormalMode,
+  setPromotionMode,
+  setGameOverMode,
+  initGameState,
+} from "./state";
 import { isLegalMove } from "./move-validation";
 import { applyMove } from "./move-application";
+import { isPromotionMove } from "./special-moves";
+import { getGameEndStatus } from "./game-status";
 
 function moveBoardFocus(gameState: GameState, direction: Direction): boolean {
   const focusedSquare = gameState.ui.focusedSquare
@@ -39,6 +47,7 @@ function moveFocus(gameState: GameState, direction: Direction): boolean {
     case "normal":
       return moveBoardFocus(gameState, direction);
     case "promotion":
+    case "gameover":
       return false;
   }
 }
@@ -52,14 +61,6 @@ function trySelectSquare(gameState: GameState, position: Position): boolean {
     return true;
   }
   return false;
-}
-
-function isPromotionMove(piece: Piece, position: Position): boolean {
-  if (piece.type !== "pawn") return false;
-  return (
-    (piece.colour === "white" && position.y === 0) ||
-    (piece.colour === "black" && position.y === 7)
-  );
 }
 
 function interactWithSquare(gameState: GameState, position: Position): boolean {
@@ -91,16 +92,23 @@ function interactWithSquare(gameState: GameState, position: Position): boolean {
     return true;
   }
 
-  if (!isLegalMove(gameState, { from: selectedSquare, to: position })) {
-    return false;
-  }
-  applyMove(gameState, { from: selectedSquare, to: position });
+  const moveAttempt = { from: selectedSquare, to: position };
+
+  if (!isLegalMove(gameState, moveAttempt)) return false;
+
+  applyMove(gameState, moveAttempt);
   gameState.ui.selectedSquare = null;
-  if (isPromotionMove(selectedPiece, position)) {
+
+  if (isPromotionMove(selectedPiece, moveAttempt)) {
     setPromotionMode(gameState, position, selectedPiece.colour);
     return true;
   }
   advanceTurn(gameState);
+  const endGameStatus = getGameEndStatus(gameState, gameState.game.currentTurn);
+  if (endGameStatus) {
+    setGameOverMode(gameState, endGameStatus, gameState.game.currentTurn);
+    return true;
+  }
   return true;
 }
 
@@ -120,6 +128,7 @@ function interactAtPosition(gameState: GameState, position: Position): boolean {
       return stateUpdated || focusCleared;
     }
     case "promotion":
+    case "gameover":
       return false;
   }
 }
@@ -130,6 +139,7 @@ function interactWithFocus(gameState: GameState): boolean {
       if (!gameState.ui.focusedSquare) return false;
       return interactWithSquare(gameState, gameState.ui.focusedSquare);
     case "promotion":
+    case "gameover":
       return false;
   }
 }
@@ -147,6 +157,7 @@ function cancel(gameState: GameState): boolean {
     case "normal":
       return clearSelection(gameState);
     case "promotion":
+    case "gameover":
       return false;
   }
 }
@@ -158,14 +169,43 @@ function confirmPromotionSelection(
   if (gameState.ui.mode.type !== "promotion") {
     throw new Error("confirmPromotionSelection called in wrong mode");
   }
+
   const { position, colour } = gameState.ui.mode;
   setSquare(gameState.game.board, position, { type: selectedType, colour });
   setNormalMode(gameState);
   advanceTurn(gameState);
+
+  const gameOverState = getGameEndStatus(gameState, gameState.game.currentTurn);
+  if (gameOverState) {
+    setGameOverMode(gameState, gameOverState, gameState.game.currentTurn);
+  }
+
   return true;
 }
 
-function initActions(gameState: GameState, reRender: () => void): Actions {
+function resetGameState(gameState: GameState): void {
+  const fresh = initGameState();
+  gameState.game = fresh.game;
+  gameState.ui = fresh.ui;
+}
+
+function confirmGameOverSelection(
+  gameState: GameState,
+  selection: GameOverOptions,
+): boolean {
+  if (gameState.ui.mode.type !== "gameover") {
+    throw new Error("confirmGameOverSelection called in wrong mode");
+  }
+  if (selection === "quit") return false;
+  resetGameState(gameState);
+  return true;
+}
+
+function initActions(
+  gameState: GameState,
+  reRender: () => void,
+  quit: () => void,
+): Actions {
   const actions: Actions = {
     onMoveFocus: (direction: Direction) => {
       const uiUpdated = moveFocus(gameState, direction);
@@ -195,6 +235,14 @@ function initActions(gameState: GameState, reRender: () => void): Actions {
       const stateUpdated = confirmPromotionSelection(gameState, type);
       if (stateUpdated) {
         reRender();
+      }
+    },
+    onConfirmGameOverChoice: (type: GameOverOptions) => {
+      const continueGame = confirmGameOverSelection(gameState, type);
+      if (continueGame) {
+        reRender();
+      } else {
+        quit();
       }
     },
   };

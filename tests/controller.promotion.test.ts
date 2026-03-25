@@ -10,7 +10,11 @@ describe("promotion flow", () => {
 
   beforeEach(() => {
     gameState = createMinimalGameState();
-    actions = initActions(gameState, () => {});
+    actions = initActions(
+      gameState,
+      () => {},
+      () => {},
+    );
   });
 
   test("white pawn reaching back rank enters promotion mode", () => {
