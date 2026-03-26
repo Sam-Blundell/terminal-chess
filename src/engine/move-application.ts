@@ -7,8 +7,6 @@ import {
   isPawnDoubleMove,
 } from "./special-moves";
 
-// Castling rights are invalidated when the king moves or
-// when any move originates from an original rook square.
 function updateCastlingRights(
   gameState: GameState,
   position: Position,
@@ -32,6 +30,30 @@ function updateCastlingRights(
     if (position.x === 0 && position.y === 7) {
       gameState.game.castlingRights.white.queensideRookHasMoved = true;
     } else if (position.x === 7 && position.y === 7) {
+      gameState.game.castlingRights.white.kingsideRookHasMoved = true;
+    }
+  }
+}
+
+function updateCastlingRightsOnCapture(
+  gameState: GameState,
+  capturedPosition: Position,
+  capturedPiece: Piece,
+): void {
+  if (capturedPiece.type !== "rook") return;
+
+  const { x, y } = capturedPosition;
+
+  if (capturedPiece.colour === "black") {
+    if (x === 0 && y === 0) {
+      gameState.game.castlingRights.black.queensideRookHasMoved = true;
+    } else if (x === 7 && y === 0) {
+      gameState.game.castlingRights.black.kingsideRookHasMoved = true;
+    }
+  } else {
+    if (x === 0 && y === 7) {
+      gameState.game.castlingRights.white.queensideRookHasMoved = true;
+    } else if (x === 7 && y === 7) {
       gameState.game.castlingRights.white.kingsideRookHasMoved = true;
     }
   }
@@ -136,6 +158,7 @@ function applyMove(gameState: GameState, move: Move): void {
 
   if (targetPiece) {
     gameState.game.capturedPieces[targetPiece.colour].push(targetPiece);
+    updateCastlingRightsOnCapture(gameState, move.to, targetPiece);
   }
   setSquare(board, move.to, piece);
   setSquare(board, move.from, null);
