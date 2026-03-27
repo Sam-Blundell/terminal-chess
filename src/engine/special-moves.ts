@@ -1,18 +1,18 @@
-import type { Piece, Move } from "./game";
-import type { GameState } from "./state";
+import type { Piece, Move, PieceType } from "./game";
+import type { GameState } from "./game-state";
 import { getSquare } from "./game";
 
-function isCastleAttempt(piece: Piece, move: Move): boolean {
+function isCastleAttempt(type: PieceType, move: Move): boolean {
   return (
-    piece.type === "king" &&
+    type === "king" &&
     move.from.y === move.to.y &&
     Math.abs(move.to.x - move.from.x) === 2
   );
 }
 
-function isPawnDoubleMove(piece: Piece, move: Move): boolean {
+function isPawnDoubleMove(type: PieceType, move: Move): boolean {
   return (
-    piece.type === "pawn" &&
+    type === "pawn" &&
     move.from.x === move.to.x &&
     Math.abs(move.to.y - move.from.y) === 2
   );
@@ -27,13 +27,13 @@ function isPromotionMove(piece: Piece, move: Move): boolean {
 }
 
 function isEnPassantCapture(
-  gameState: GameState,
+  game: GameState,
   piece: Piece,
   move: Move,
 ): boolean {
   if (piece.type !== "pawn") return false;
 
-  const enPassant = gameState.game.enPassant;
+  const enPassant = game.enPassant;
   if (!enPassant) return false;
 
   const xDiff = Math.abs(move.to.x - move.from.x);
@@ -44,10 +44,10 @@ function isEnPassantCapture(
     return false;
   }
 
-  if (getSquare(gameState.game.board, move.to) !== null) return false;
+  if (getSquare(game.board, move.to) !== null) return false;
 
   const capturedPawnYOffset = piece.colour === "black" ? -1 : 1;
-  const enemyPawn = getSquare(gameState.game.board, {
+  const enemyPawn = getSquare(game.board, {
     x: move.to.x,
     y: move.to.y + capturedPawnYOffset,
   });

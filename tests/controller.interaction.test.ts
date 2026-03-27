@@ -3,16 +3,16 @@ import { beforeEach, describe, expect, test } from "bun:test";
 import { initActions } from "../src/app/controller";
 import { chessNotationToPosition } from "../src/engine/notation-helpers";
 import { getSquare } from "../src/engine/game";
-import { createMinimalGameState, placePieces } from "./test-helpers";
+import { createMinimalAppState, placePieces } from "./test-helpers";
 
 describe("controller", () => {
-  let gameState: ReturnType<typeof createMinimalGameState>;
+  let gameState: ReturnType<typeof createMinimalAppState>;
   let reRenderCount: number;
   let quitCount: number;
   let actions: ReturnType<typeof initActions>;
 
   beforeEach(() => {
-    gameState = createMinimalGameState();
+    gameState = createMinimalAppState();
     reRenderCount = 0;
     quitCount = 0;
     actions = initActions(

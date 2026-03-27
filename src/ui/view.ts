@@ -1,9 +1,7 @@
 import type { PieceColour, Piece, Square, Position } from "../engine/game";
-import type {
-  GameState,
-  PromotionOptions,
-  GameOverOptions,
-} from "../engine/state";
+import type { PromotionOptions } from "../engine/promotion";
+import type { GameOverOptions } from "../app/ui-state";
+import type { AppState } from "../app/app-state";
 import type { Actions } from "../app/actions";
 import { Box, Text, Select, SelectRenderableEvents } from "@opentui/core";
 import { SIZE, getSquare } from "../engine/game";
@@ -41,7 +39,7 @@ function pieceToGlyph(piece: Square): string {
 }
 
 function getSquareBackgroundColour(
-  gameState: GameState,
+  gameState: AppState,
   position: Position,
   isDark: boolean,
 ) {
@@ -59,7 +57,7 @@ function getSquareBackgroundColour(
 
 function cell(
   actions: Actions,
-  gameState: GameState,
+  gameState: AppState,
   isDark: boolean,
   piece: Square,
   position: Position,
@@ -82,7 +80,7 @@ function cell(
   );
 }
 
-function row(actions: Actions, gameState: GameState, y: number) {
+function row(actions: Actions, gameState: AppState, y: number) {
   return Box(
     { flexDirection: "row" },
     ...Array.from({ length: SIZE }, (_, x) => {
@@ -94,7 +92,7 @@ function row(actions: Actions, gameState: GameState, y: number) {
   );
 }
 
-function chessboard(actions: Actions, gameState: GameState) {
+function chessboard(actions: Actions, gameState: AppState) {
   return Box(
     {
       padding: 1,
@@ -162,7 +160,7 @@ function buildPromotionMenu(
 }
 
 function promotionModal(
-  gameState: GameState,
+  gameState: AppState,
   onConfirmPromotion: (type: PromotionOptions) => void,
 ) {
   const { mode } = gameState.ui;
@@ -229,7 +227,7 @@ function buildGameOverMenu(onSelect: (type: GameOverOptions) => void) {
 }
 
 function gameOverModal(
-  gameState: GameState,
+  gameState: AppState,
   onSelect: (type: GameOverOptions) => void,
 ) {
   const { mode } = gameState.ui;
@@ -279,7 +277,7 @@ function gameOverModal(
   );
 }
 
-function boardLayout(actions: Actions, gameState: GameState) {
+function boardLayout(actions: Actions, gameState: AppState) {
   return Box(
     {
       flexDirection: "row",
@@ -294,7 +292,7 @@ function boardLayout(actions: Actions, gameState: GameState) {
 
 function buildApp(
   actions: Actions,
-  gameState: GameState,
+  gameState: AppState,
 ): ReturnType<typeof Box> {
   return Box(
     {

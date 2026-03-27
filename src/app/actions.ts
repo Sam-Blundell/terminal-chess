@@ -1,5 +1,6 @@
 import type { Position } from "../engine/game";
-import type { PromotionOptions, GameOverOptions } from "../engine/state";
+import type { PromotionOptions } from "../engine/promotion";
+import type { GameOverOptions } from "./ui-state";
 
 type Direction = "up" | "down" | "left" | "right";
 

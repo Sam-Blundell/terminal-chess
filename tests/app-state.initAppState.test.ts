@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
 import { getSquare } from "../src/engine/game";
-import { initGameState } from "../src/engine/state";
+import { initAppState } from "../src/app/app-state";
 import { chessNotationToPosition } from "../src/engine/notation-helpers";
 
-describe("initGameState", () => {
+describe("initAppState", () => {
   test("initializes expected defaults", () => {
-    const gameState = initGameState();
+    const gameState = initAppState();
 
     expect(gameState.game.currentTurn).toBe("white");
     expect(gameState.game.enPassant).toBe(null);

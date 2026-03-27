@@ -1,13 +1,27 @@
 import type { Square, Position } from "../src/engine/game";
 import { beforeEach, describe, expect, test } from "bun:test";
-import { createMinimalGameState, placePieces } from "./test-helpers";
+import { createMinimalAppState, placePieces } from "./test-helpers";
 import { setSquare } from "../src/engine/game";
-import { applyMove } from "../src/engine/move-application";
-import { isLegalMove } from "../src/engine/move-validation";
+import { applyMove as applyMoveEngine } from "../src/engine/move-application";
+import { isLegalMove as isLegalMoveEngine } from "../src/engine/move-validation";
 import { chessNotationToPosition } from "../src/engine/notation-helpers";
 
+function applyMove(
+  gameState: ReturnType<typeof createMinimalAppState>,
+  move: Parameters<typeof applyMoveEngine>[1],
+): void {
+  applyMoveEngine(gameState.game, move);
+}
+
+function isLegalMove(
+  gameState: ReturnType<typeof createMinimalAppState>,
+  move: Parameters<typeof isLegalMoveEngine>[1],
+): boolean {
+  return isLegalMoveEngine(gameState.game, move);
+}
+
 describe("isLegalMove", () => {
-  let gameState: ReturnType<typeof createMinimalGameState>;
+  let gameState: ReturnType<typeof createMinimalAppState>;
 
   const whiteRook: Square = { type: "rook", colour: "white" };
   const blackRook: Square = { type: "rook", colour: "black" };
@@ -25,7 +39,7 @@ describe("isLegalMove", () => {
   const blackQSRookPos: Position = { x: 0, y: 0 };
 
   beforeEach(() => {
-    gameState = createMinimalGameState();
+    gameState = createMinimalAppState();
   });
 
   describe("castling", () => {

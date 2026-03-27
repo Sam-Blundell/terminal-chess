@@ -1,14 +1,21 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { applyMove } from "../src/engine/move-application";
+import { applyMove as applyMoveEngine } from "../src/engine/move-application";
 import { getSquare } from "../src/engine/game";
 import { chessNotationToPosition } from "../src/engine/notation-helpers";
-import { createMinimalGameState, placePieces } from "./test-helpers";
+import { createMinimalAppState, placePieces } from "./test-helpers";
+
+function applyMove(
+  gameState: ReturnType<typeof createMinimalAppState>,
+  move: Parameters<typeof applyMoveEngine>[1],
+): void {
+  applyMoveEngine(gameState.game, move);
+}
 
 describe("applyMove en passant", () => {
-  let gameState: ReturnType<typeof createMinimalGameState>;
+  let gameState: ReturnType<typeof createMinimalAppState>;
 
   beforeEach(() => {
-    gameState = createMinimalGameState();
+    gameState = createMinimalAppState();
   });
 
   test("double pawn move sets en passant square for black pawn", () => {

@@ -2,14 +2,14 @@ import { beforeEach, describe, expect, test } from "bun:test";
 
 import { initActions } from "../src/app/controller";
 import { chessNotationToPosition } from "../src/engine/notation-helpers";
-import { createMinimalGameState, placePieces } from "./test-helpers";
+import { createMinimalAppState, placePieces } from "./test-helpers";
 
 describe("controller gameover flow", () => {
-  let gameState: ReturnType<typeof createMinimalGameState>;
+  let gameState: ReturnType<typeof createMinimalAppState>;
   let actions: ReturnType<typeof initActions>;
 
   beforeEach(() => {
-    gameState = createMinimalGameState();
+    gameState = createMinimalAppState();
     actions = initActions(
       gameState,
       () => {},

@@ -1,14 +1,28 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { isLegalMove } from "../src/engine/move-validation";
-import { applyMove } from "../src/engine/move-application";
+import { isLegalMove as isLegalMoveEngine } from "../src/engine/move-validation";
+import { applyMove as applyMoveEngine } from "../src/engine/move-application";
 import { chessNotationToPosition } from "../src/engine/notation-helpers";
-import { createMinimalGameState, placePieces } from "./test-helpers";
+import { createMinimalAppState, placePieces } from "./test-helpers";
+
+function applyMove(
+  gameState: ReturnType<typeof createMinimalAppState>,
+  move: Parameters<typeof applyMoveEngine>[1],
+): void {
+  applyMoveEngine(gameState.game, move);
+}
+
+function isLegalMove(
+  gameState: ReturnType<typeof createMinimalAppState>,
+  move: Parameters<typeof isLegalMoveEngine>[1],
+): boolean {
+  return isLegalMoveEngine(gameState.game, move);
+}
 
 describe("isLegalMove en passant", () => {
-  let gameState: ReturnType<typeof createMinimalGameState>;
+  let gameState: ReturnType<typeof createMinimalAppState>;
 
   beforeEach(() => {
-    gameState = createMinimalGameState();
+    gameState = createMinimalAppState();
   });
 
   test("white pawn can capture en passant immediately after black double pawn move", () => {

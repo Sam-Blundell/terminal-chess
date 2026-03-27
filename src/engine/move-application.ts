@@ -1,5 +1,5 @@
 import type { Position, Piece, Move } from "./game";
-import type { GameState } from "./state";
+import type { CastlingRights, GameState } from "./game-state";
 import { getSquare, setSquare } from "./game";
 import {
   isCastleAttempt,
@@ -8,35 +8,35 @@ import {
 } from "./special-moves";
 
 function updateCastlingRights(
-  gameState: GameState,
+  castlingRights: CastlingRights,
   position: Position,
   piece: Piece,
 ): void {
   if (piece.colour === "black") {
     if (piece.type === "king") {
-      gameState.game.castlingRights.black.kingHasMoved = true;
+      castlingRights.black.kingHasMoved = true;
       return;
     }
     if (position.x === 0 && position.y === 0) {
-      gameState.game.castlingRights.black.queensideRookHasMoved = true;
+      castlingRights.black.queensideRookHasMoved = true;
     } else if (position.x === 7 && position.y === 0) {
-      gameState.game.castlingRights.black.kingsideRookHasMoved = true;
+      castlingRights.black.kingsideRookHasMoved = true;
     }
   } else {
     if (piece.type === "king") {
-      gameState.game.castlingRights.white.kingHasMoved = true;
+      castlingRights.white.kingHasMoved = true;
       return;
     }
     if (position.x === 0 && position.y === 7) {
-      gameState.game.castlingRights.white.queensideRookHasMoved = true;
+      castlingRights.white.queensideRookHasMoved = true;
     } else if (position.x === 7 && position.y === 7) {
-      gameState.game.castlingRights.white.kingsideRookHasMoved = true;
+      castlingRights.white.kingsideRookHasMoved = true;
     }
   }
 }
 
 function updateCastlingRightsOnCapture(
-  gameState: GameState,
+  castlingRights: CastlingRights,
   capturedPosition: Position,
   capturedPiece: Piece,
 ): void {
@@ -46,20 +46,20 @@ function updateCastlingRightsOnCapture(
 
   if (capturedPiece.colour === "black") {
     if (x === 0 && y === 0) {
-      gameState.game.castlingRights.black.queensideRookHasMoved = true;
+      castlingRights.black.queensideRookHasMoved = true;
     } else if (x === 7 && y === 0) {
-      gameState.game.castlingRights.black.kingsideRookHasMoved = true;
+      castlingRights.black.kingsideRookHasMoved = true;
     }
   } else {
     if (x === 0 && y === 7) {
-      gameState.game.castlingRights.white.queensideRookHasMoved = true;
+      castlingRights.white.queensideRookHasMoved = true;
     } else if (x === 7 && y === 7) {
-      gameState.game.castlingRights.white.kingsideRookHasMoved = true;
+      castlingRights.white.kingsideRookHasMoved = true;
     }
   }
 }
 
-function applyCastling(gameState: GameState, piece: Piece, move: Move): void {
+function applyCastling(game: GameState, piece: Piece, move: Move): void {
   const homeRank = piece.colour === "white" ? 7 : 0;
   const isKingside = move.to.x === move.from.x + 2;
 
@@ -67,7 +67,7 @@ function applyCastling(gameState: GameState, piece: Piece, move: Move): void {
     ? { x: 7, y: homeRank }
     : { x: 0, y: homeRank };
 
-  const rook = getSquare(gameState.game.board, rookPosition);
+  const rook = getSquare(game.board, rookPosition);
   if (!rook) {
     throw new Error("No rook at castling position");
   }
@@ -80,24 +80,24 @@ function applyCastling(gameState: GameState, piece: Piece, move: Move): void {
     ? { x: move.from.x + 2, y: homeRank }
     : { x: move.from.x - 2, y: homeRank };
 
-  setSquare(gameState.game.board, newKingPosition, piece);
-  setSquare(gameState.game.board, move.from, null);
-  setSquare(gameState.game.board, newRookPosition, rook);
-  setSquare(gameState.game.board, rookPosition, null);
-  gameState.game.kingPositions[piece.colour] = newKingPosition;
-  gameState.game.castlingRights[piece.colour].kingHasMoved = true;
-  gameState.game.castlingRights[piece.colour][
+  setSquare(game.board, newKingPosition, piece);
+  setSquare(game.board, move.from, null);
+  setSquare(game.board, newRookPosition, rook);
+  setSquare(game.board, rookPosition, null);
+  game.kingPositions[piece.colour] = newKingPosition;
+  game.castlingRights[piece.colour].kingHasMoved = true;
+  game.castlingRights[piece.colour][
     isKingside ? "kingsideRookHasMoved" : "queensideRookHasMoved"
   ] = true;
 }
 
-function setEnPassant(gameState: GameState, move: Move): void {
+function setEnPassant(game: GameState, move: Move): void {
   const yPos = (move.from.y + move.to.y) / 2;
-  gameState.game.enPassant = { x: move.from.x, y: yPos };
+  game.enPassant = { x: move.from.x, y: yPos };
 }
 
-function applyEnPassantCapture(gameState: GameState, move: Move): void {
-  const { board } = gameState.game;
+function applyEnPassantCapture(game: GameState, move: Move): void {
+  const { board } = game;
   const piece = getSquare(board, move.from);
 
   if (!piece) {
@@ -123,49 +123,49 @@ function applyEnPassantCapture(gameState: GameState, move: Move): void {
     throw new Error("invalid captured pawn inside applyEnPassantCapture");
   }
 
-  gameState.game.capturedPieces[enemyPawn.colour].push(enemyPawn);
+  game.capturedPieces[enemyPawn.colour].push(enemyPawn);
 
   setSquare(board, move.from, null);
   setSquare(board, enemyPawnPosition, null);
   setSquare(board, move.to, piece);
 }
 
-function applyMove(gameState: GameState, move: Move): void {
-  const { board } = gameState.game;
+function applyMove(game: GameState, move: Move): void {
+  const { board, castlingRights } = game;
   const piece = getSquare(board, move.from);
   if (!piece) {
     throw new Error("No piece at the source square");
   }
 
-  if (isCastleAttempt(piece, move)) {
-    gameState.game.enPassant = null;
-    applyCastling(gameState, piece, move);
+  if (isCastleAttempt(piece.type, move)) {
+    game.enPassant = null;
+    applyCastling(game, piece, move);
     return;
   }
 
-  if (isEnPassantCapture(gameState, piece, move)) {
-    gameState.game.enPassant = null;
-    applyEnPassantCapture(gameState, move);
+  if (isEnPassantCapture(game, piece, move)) {
+    game.enPassant = null;
+    applyEnPassantCapture(game, move);
     return;
   }
 
-  gameState.game.enPassant = null;
+  game.enPassant = null;
 
-  if (isPawnDoubleMove(piece, move)) {
-    setEnPassant(gameState, move);
+  if (isPawnDoubleMove(piece.type, move)) {
+    setEnPassant(game, move);
   }
   const targetPiece = getSquare(board, move.to);
 
   if (targetPiece) {
-    gameState.game.capturedPieces[targetPiece.colour].push(targetPiece);
-    updateCastlingRightsOnCapture(gameState, move.to, targetPiece);
+    game.capturedPieces[targetPiece.colour].push(targetPiece);
+    updateCastlingRightsOnCapture(castlingRights, move.to, targetPiece);
   }
   setSquare(board, move.to, piece);
   setSquare(board, move.from, null);
   if (piece.type === "king") {
-    gameState.game.kingPositions[piece.colour] = move.to;
+    game.kingPositions[piece.colour] = move.to;
   }
-  updateCastlingRights(gameState, move.from, piece);
+  updateCastlingRights(castlingRights, move.from, piece);
 }
 
 export { applyMove };

@@ -1,5 +1,5 @@
 import type { Piece, Board, Move, Position, PieceColour } from "./game";
-import type { GameState } from "./state";
+import type { GameState } from "./game-state";
 import { getSquare, tryGetSquare, applyOffset } from "./game";
 import { isCastleAttempt, isEnPassantCapture } from "./special-moves";
 import { applyMove } from "./move-application";
@@ -177,29 +177,21 @@ function isSquareAttacked(
 }
 
 function wouldLeaveKingInCheck(
-  gameState: GameState,
+  game: GameState,
   move: Move,
   movingColour: PieceColour,
 ) {
-  const simulatedGameState = structuredClone(gameState);
-  applyMove(simulatedGameState, move);
+  const simulatedGame = structuredClone(game);
+  applyMove(simulatedGame, move);
 
   const opponentColour = movingColour === "white" ? "black" : "white";
-  const kingPosition = simulatedGameState.game.kingPositions[movingColour];
+  const kingPosition = simulatedGame.kingPositions[movingColour];
 
-  return isSquareAttacked(
-    simulatedGameState.game.board,
-    kingPosition,
-    opponentColour,
-  );
+  return isSquareAttacked(simulatedGame.board, kingPosition, opponentColour);
 }
 
-function isLegalPawnMove(
-  gameState: GameState,
-  piece: Piece,
-  move: Move,
-): boolean {
-  const { board } = gameState.game;
+function isLegalPawnMove(game: GameState, piece: Piece, move: Move): boolean {
+  const { board } = game;
   const { colour } = piece;
   const deltaX = move.to.x - move.from.x;
   const deltaY = move.to.y - move.from.y;
@@ -218,7 +210,7 @@ function isLegalPawnMove(
 
   if (forwardDistance > 2 || horizontalDistance > 1) return false;
 
-  if (isEnPassantCapture(gameState, piece, move)) return true;
+  if (isEnPassantCapture(game, piece, move)) return true;
 
   const targetSquare = getSquare(board, move.to);
   const targetSquareOccupied = !!targetSquare;
@@ -282,7 +274,7 @@ function isLegalKingMove(move: Move): boolean {
 }
 
 function isLegalCastlingMove(
-  gameState: GameState,
+  game: GameState,
   piece: Piece,
   move: Move,
 ): boolean {
@@ -290,7 +282,7 @@ function isLegalCastlingMove(
   if (move.to.y !== move.from.y) return false;
   if (Math.abs(move.to.x - move.from.x) !== 2) return false;
 
-  const { board, castlingRights } = gameState.game;
+  const { board, castlingRights } = game;
   const enemyColour = piece.colour === "white" ? "black" : "white";
   const homeRank = piece.colour === "white" ? 7 : 0;
   const isKingside = move.to.x === move.from.x + 2;
@@ -324,8 +316,8 @@ function isLegalCastlingMove(
   return pathIsClear(board, { from: move.from, to: rookPosition });
 }
 
-function isLegalMove(gameState: GameState, move: Move): boolean {
-  const { board } = gameState.game;
+function isLegalMove(game: GameState, move: Move): boolean {
+  const { board } = game;
   // common checks for all pieces
   const startingPiece = getSquare(board, move.from);
   if (!startingPiece) {
@@ -341,8 +333,8 @@ function isLegalMove(gameState: GameState, move: Move): boolean {
   const targetIsEnemyKing = targetPiece?.type === "king" && !targetIsFriendly;
 
   // check special castling case
-  if (isCastleAttempt(startingPiece, move)) {
-    return isLegalCastlingMove(gameState, startingPiece, move);
+  if (isCastleAttempt(startingPiece.type, move)) {
+    return isLegalCastlingMove(game, startingPiece, move);
   }
 
   if (targetIsEnemyKing || targetIsFriendly) return false;
@@ -352,7 +344,7 @@ function isLegalMove(gameState: GameState, move: Move): boolean {
 
   switch (startingPiece.type) {
     case "pawn":
-      movementLegal = isLegalPawnMove(gameState, startingPiece, move);
+      movementLegal = isLegalPawnMove(game, startingPiece, move);
       break;
     case "rook":
       movementLegal = isLegalRookMove(board, move);
@@ -372,7 +364,7 @@ function isLegalMove(gameState: GameState, move: Move): boolean {
   }
   if (!movementLegal) return false;
 
-  return !wouldLeaveKingInCheck(gameState, move, startingPiece.colour);
+  return !wouldLeaveKingInCheck(game, move, startingPiece.colour);
 }
 
 export { isLegalMove, isSquareAttacked };

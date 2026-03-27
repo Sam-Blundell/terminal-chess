@@ -1,12 +1,19 @@
 import { beforeEach, describe, expect, test } from "bun:test";
-import { createMinimalGameState } from "./test-helpers";
+import { createMinimalAppState } from "./test-helpers";
 import { setSquare } from "../src/engine/game";
-import { isLegalMove } from "../src/engine/move-validation";
+import { isLegalMove as isLegalMoveEngine } from "../src/engine/move-validation";
+
+function isLegalMove(
+  gameState: ReturnType<typeof createMinimalAppState>,
+  move: Parameters<typeof isLegalMoveEngine>[1],
+): boolean {
+  return isLegalMoveEngine(gameState.game, move);
+}
 
 describe("isLegalMove", () => {
-  let gameState: ReturnType<typeof createMinimalGameState>;
+  let gameState: ReturnType<typeof createMinimalAppState>;
   beforeEach(() => {
-    gameState = createMinimalGameState();
+    gameState = createMinimalAppState();
   });
   test("throws when from square has no piece", () => {
     const start = { x: 4, y: 4 };

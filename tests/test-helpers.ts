@@ -1,7 +1,9 @@
 import type { Board, Piece, Position } from "../src/engine/game";
-import type { GameState } from "../src/engine/state";
+import type { GameState } from "../src/engine/game-state";
+import type { AppState } from "../src/app/app-state";
 import { setSquare, SIZE } from "../src/engine/game";
 import { pieceMap, fileMap, rankToRow } from "../src/engine/notation-helpers";
+import { initUIState } from "../src/app/ui-state";
 
 function createEmptyBoard(): Board {
   return Array.from({ length: SIZE }, () =>
@@ -14,43 +16,44 @@ function createMinimalGameState(): GameState {
   setSquare(board, { x: 4, y: 7 }, { colour: "white", type: "king" });
   setSquare(board, { x: 4, y: 0 }, { colour: "black", type: "king" });
   return {
-    game: {
-      board: board,
-      currentTurn: "white",
-      capturedPieces: {
-        white: [],
-        black: [],
-      },
-      kingPositions: {
-        white: { x: 4, y: 7 },
-        black: { x: 4, y: 0 },
-      },
-      castlingRights: {
-        white: {
-          kingHasMoved: false,
-          kingsideRookHasMoved: false,
-          queensideRookHasMoved: false,
-        },
-        black: {
-          kingHasMoved: false,
-          kingsideRookHasMoved: false,
-          queensideRookHasMoved: false,
-        },
-      },
-      enPassant: null,
+    board: board,
+    currentTurn: "white",
+    capturedPieces: {
+      white: [],
+      black: [],
     },
-    ui: {
-      mode: { type: "normal" },
-      focusedSquare: null,
-      selectedSquare: null,
+    kingPositions: {
+      white: { x: 4, y: 7 },
+      black: { x: 4, y: 0 },
     },
+    castlingRights: {
+      white: {
+        kingHasMoved: false,
+        kingsideRookHasMoved: false,
+        queensideRookHasMoved: false,
+      },
+      black: {
+        kingHasMoved: false,
+        kingsideRookHasMoved: false,
+        queensideRookHasMoved: false,
+      },
+    },
+    enPassant: null,
   };
 }
 
-function placePieces(gameState: GameState, pieces: string[]) {
+function createMinimalAppState(): AppState {
+  return {
+    game: createMinimalGameState(),
+    ui: initUIState(),
+  };
+}
+
+function placePieces(gameState: GameState | AppState, pieces: string[]) {
+  const game = "game" in gameState ? gameState.game : gameState;
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
-      setSquare(gameState.game.board, { x, y }, null);
+      setSquare(game.board, { x, y }, null);
     }
   }
 
@@ -80,12 +83,18 @@ function placePieces(gameState: GameState, pieces: string[]) {
 
     const parsedPosition: Position = { x, y };
     const parsedPiece: Piece = { type, colour };
-    setSquare(gameState.game.board, parsedPosition, parsedPiece);
+    setSquare(game.board, parsedPosition, parsedPiece);
 
     if (type === "king") {
-      gameState.game.kingPositions[colour] = parsedPosition;
+      game.kingPositions[colour] = parsedPosition;
     }
   });
 }
 
-export { createEmptyBoard, createMinimalGameState, placePieces, rankToRow };
+export {
+  createEmptyBoard,
+  createMinimalGameState,
+  createMinimalAppState,
+  placePieces,
+  rankToRow,
+};

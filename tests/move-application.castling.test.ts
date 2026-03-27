@@ -1,11 +1,18 @@
 import type { Position, Square } from "../src/engine/game";
 import { beforeEach, describe, expect, test } from "bun:test";
-import { createMinimalGameState } from "./test-helpers";
+import { createMinimalAppState } from "./test-helpers";
 import { setSquare, getSquare } from "../src/engine/game";
-import { applyMove } from "../src/engine/move-application";
+import { applyMove as applyMoveEngine } from "../src/engine/move-application";
+
+function applyMove(
+  gameState: ReturnType<typeof createMinimalAppState>,
+  move: Parameters<typeof applyMoveEngine>[1],
+): void {
+  applyMoveEngine(gameState.game, move);
+}
 
 describe("applyMove castling", () => {
-  let gameState: ReturnType<typeof createMinimalGameState>;
+  let gameState: ReturnType<typeof createMinimalAppState>;
 
   const whiteKingStart: Position = { x: 4, y: 7 };
   const blackKingStart: Position = { x: 4, y: 0 };
@@ -19,7 +26,7 @@ describe("applyMove castling", () => {
   const blackRook: Square = { type: "rook", colour: "black" };
 
   beforeEach(() => {
-    gameState = createMinimalGameState();
+    gameState = createMinimalAppState();
   });
 
   test("applies white kingside castling by moving king and rook", () => {

@@ -1,19 +1,15 @@
 import type { CliRenderer } from "@opentui/core";
-import type { GameState } from "../engine/state";
 import type { Actions } from "./actions";
+import type { AppState } from "./app-state";
 import { createCliRenderer, ConsolePosition } from "@opentui/core";
-import { initGameState } from "../engine/state";
+import { initAppState } from "./app-state";
 import { initActions } from "./controller";
 import { buildApp } from "../ui/view";
 import { initKeyboard } from "./keyboard";
 
-function render(
-  renderer: CliRenderer,
-  actions: Actions,
-  gameState: GameState,
-): void {
+function render(renderer: CliRenderer, actions: Actions, app: AppState): void {
   renderer.root.remove("app-root");
-  renderer.root.add(buildApp(actions, gameState));
+  renderer.root.add(buildApp(actions, app));
 }
 
 async function main() {
@@ -25,18 +21,18 @@ async function main() {
     },
   });
 
-  const gameState = initGameState();
+  const app = initAppState();
   let actions: Actions;
 
   function reRender() {
-    render(renderer, actions, gameState);
+    render(renderer, actions, app);
   }
 
   function quit() {
     renderer.destroy();
   }
 
-  actions = initActions(gameState, reRender, quit);
+  actions = initActions(app, reRender, quit);
   initKeyboard(renderer, actions);
   reRender();
 }
