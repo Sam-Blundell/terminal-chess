@@ -6,11 +6,16 @@ import type { Actions, Direction } from "./actions";
 import { getSquare, setSquare } from "../engine/game";
 import { initAppState } from "./app-state";
 import { advanceTurn } from "../engine/game-state";
-import { setNormalMode, setPromotionMode, setGameOverMode } from "./ui-state";
 import { isLegalMove } from "../engine/move-validation";
 import { applyMove } from "../engine/move-application";
 import { isPromotionMove } from "../engine/special-moves";
 import { getGameEndStatus } from "../engine/game-status";
+import {
+  setNormalMode,
+  setPromotionMode,
+  setCheckmateMode,
+  setStalemateMode,
+} from "./ui-state";
 
 function moveBoardFocus(ui: UIState, direction: Direction): boolean {
   const focusedSquare = ui.focusedSquare
@@ -66,7 +71,12 @@ function finalizeTurn(app: AppState): void {
 
   const gameOverState = getGameEndStatus(game, game.currentTurn);
   if (gameOverState) {
-    setGameOverMode(ui, gameOverState, game.currentTurn);
+    if (gameOverState === "Checkmate") {
+      const winner = game.currentTurn === "white" ? "black" : "white";
+      setCheckmateMode(ui, winner);
+    } else {
+      setStalemateMode(ui);
+    }
   }
 }
 

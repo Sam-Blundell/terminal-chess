@@ -239,7 +239,7 @@ function gameOverModal(
 
   const contentString =
     mode.result === "Checkmate"
-      ? `Game Over - ${mode.colour === "black" ? "White" : "Black"} wins by checkmate`
+      ? `Game Over - ${mode.winner === "white" ? "White" : "Black"} wins by checkmate`
       : "Game over - Stalemate";
 
   return Box(

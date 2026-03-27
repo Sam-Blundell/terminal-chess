@@ -57,7 +57,7 @@ describe("controller", () => {
       expect(gameState.ui.focusedSquare).toBe(null);
       expect(reRenderCount).toBe(0);
 
-      gameState.ui.mode = { type: "gameover", result: "Stalemate", colour: null };
+      gameState.ui.mode = { type: "gameover", result: "Stalemate" };
       actions.onMoveFocus("up");
       expect(gameState.ui.focusedSquare).toBe(null);
       expect(reRenderCount).toBe(0);
@@ -105,7 +105,7 @@ describe("controller", () => {
   describe("gameover menu", () => {
     test("new game resets state", () => {
       placePieces(gameState, ["K-e1", "k-e8", "Q-a1"]);
-      gameState.ui.mode = { type: "gameover", result: "Stalemate", colour: null };
+      gameState.ui.mode = { type: "gameover", result: "Stalemate" };
       gameState.ui.selectedSquare = chessNotationToPosition("a1");
       gameState.ui.focusedSquare = chessNotationToPosition("b2");
       gameState.game.currentTurn = "black";
@@ -137,7 +137,7 @@ describe("controller", () => {
     });
 
     test("quit calls quit callback and does not re-render", () => {
-      gameState.ui.mode = { type: "gameover", result: "Stalemate", colour: null };
+      gameState.ui.mode = { type: "gameover", result: "Stalemate" };
       actions.onConfirmGameOverChoice("quit");
 
       expect(quitCount).toBe(1);

@@ -1,20 +1,12 @@
 import type { PieceColour, Position } from "../engine/game";
-import type { GameEndStatus } from "../engine/game-status";
 
 type GameOverOptions = "newGame" | "quit";
 
 type UIMode =
   | { type: "normal" }
-  | {
-      type: "promotion";
-      position: Position;
-      colour: PieceColour;
-    }
-  | {
-      type: "gameover";
-      result: GameEndStatus;
-      colour: PieceColour | null;
-    };
+  | { type: "promotion"; position: Position; colour: PieceColour }
+  | { type: "gameover"; result: "Checkmate"; winner: PieceColour }
+  | { type: "gameover"; result: "Stalemate" };
 
 type UIState = {
   mode: UIMode;
@@ -46,13 +38,19 @@ function setPromotionMode(
   };
 }
 
-function setGameOverMode(
-  ui: UIState,
-  result: GameEndStatus,
-  colour: PieceColour,
-): void {
-  ui.mode = { type: "gameover", result, colour };
+function setCheckmateMode(ui: UIState, winner: PieceColour): void {
+  ui.mode = { type: "gameover", result: "Checkmate", winner };
+}
+
+function setStalemateMode(ui: UIState): void {
+  ui.mode = { type: "gameover", result: "Stalemate" };
 }
 
 export type { UIState, UIMode, GameOverOptions };
-export { initUIState, setNormalMode, setPromotionMode, setGameOverMode };
+export {
+  initUIState,
+  setNormalMode,
+  setPromotionMode,
+  setCheckmateMode,
+  setStalemateMode,
+};

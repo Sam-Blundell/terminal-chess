@@ -27,7 +27,7 @@ describe("controller gameover flow", () => {
     expect(gameState.ui.mode).toEqual({
       type: "gameover",
       result: "Checkmate",
-      colour: "black",
+      winner: "white",
     });
   });
 
@@ -41,7 +41,6 @@ describe("controller gameover flow", () => {
     expect(gameState.ui.mode).toEqual({
       type: "gameover",
       result: "Stalemate",
-      colour: "black",
     });
   });
 
@@ -64,7 +63,7 @@ describe("controller gameover flow", () => {
     expect(gameState.ui.mode).toEqual({
       type: "gameover",
       result: "Checkmate",
-      colour: "black",
+      winner: "white",
     });
   });
 });
