@@ -15,6 +15,8 @@ import {
   isLegalKingMove,
 } from "./piece-moves";
 
+// This is one of the most expensive parts of the
+// application as it creates a atructured clone
 function wouldLeaveKingInCheck(
   game: GameState,
   move: Move,
@@ -29,7 +31,11 @@ function wouldLeaveKingInCheck(
   return isSquareAttacked(simulatedGame.board, kingPosition, opponentColour);
 }
 
-function isLegalCastlingMove(game: GameState, piece: Piece, move: Move): boolean {
+function isLegalCastlingMove(
+  game: GameState,
+  piece: Piece,
+  move: Move,
+): boolean {
   if (piece.type !== "king") return false;
   if (move.to.y !== move.from.y) return false;
   if (Math.abs(move.to.x - move.from.x) !== 2) return false;
