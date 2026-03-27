@@ -14,7 +14,7 @@ Install and run:
 
 ```bash
 bun install
-bun run index.ts
+bun run src/app/index.ts
 ```
 
 ## Play
